@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RETRO8OI", "RETRO8OI\RETRO8OI.csproj", "{EEDE1205-AE6E-49AD-A63F-069C4D5D505B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RETRO8OI.UnitTest", "RETRO8OI.UnitTest\RETRO8OI.UnitTest.csproj", "{A411EFF1-7667-4002-A55C-D0A58A619D8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EEDE1205-AE6E-49AD-A63F-069C4D5D505B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEDE1205-AE6E-49AD-A63F-069C4D5D505B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEDE1205-AE6E-49AD-A63F-069C4D5D505B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEDE1205-AE6E-49AD-A63F-069C4D5D505B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
