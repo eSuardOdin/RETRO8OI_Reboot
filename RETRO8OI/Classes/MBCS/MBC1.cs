@@ -56,11 +56,6 @@ public class MBC1 : IMBC
         _rom = rom;
         _ram = ram;
         
-        
-        // Test
-        _bankRegister1 = 0b10010;
-        _bankRegister2 = 0b01;
-        Console.WriteLine($"{GetFullBank():X2}");
     }
     
     /// <summary>
@@ -103,27 +98,46 @@ public class MBC1 : IMBC
 
     public byte Read(ushort address)
     {
-        // If mode 0
-        if (_mode == 0x0)
+        // Get first banking ROM space (0000-3FFF)
+        if(address <= 0x3FFF)
         {
-            // First bank
-            if(address <= 0x3FFF) return _rom[address];
-
-            if (address <= 0x7FFF)
+            // If mode 0, just read address
+            if (_mode == 0x0)
             {
-                //Second bank with no switching
-                if (GetFullBank() == 0x0)
-                {
-                    return _rom[address];
-                }
-                // Second bank with switching if any
-                return _rom[address + (0x4000 * (GetFullBank() - 1))];
+                return _rom[address];    
             }
-
+            // Else, add bank number * 0x4000
+            return _rom[address + (GetRomBankMod1() * 0x4000)];
+        }
+        // Get second banking ROM space (4000-7FFF)
+        if (address <= 0x7FFF)
+        {
+            int offset = address - 0x4000;
+            return _rom[offset + (GetRomBank() * 0x4000)];
             
         }
-        // Read ROM Bank 0
-
+        // RAM Space 
+        if (_ramGateRegister == 0xA && _ram != null && address >= 0xA000 && address <= 0xBFFF)
+        {
+            return _ram[address];
+        }
+        // If mode 1
+        if (_mode == 0x1)
+        {
+            // First banking ROM space
+            if(address <= 0x3FFF) return _rom[address];
+            // Second banking ROM space
+            if (address <= 0x7FFF)
+            {
+                int offset = address - 0x4000;
+                return _rom[offset + (GetRomBank() * 0x4000)];
+            }
+            // RAM Space
+            if (_ramGateRegister == 0xA && _ram != null && address >= 0xA000 && address <= 0xBFFF)
+            {
+                return _ram[address];
+            }
+        }
         return 0xFF;
     }
 
@@ -144,6 +158,8 @@ public class MBC1 : IMBC
     /// <param name="data">The data to write</param>
     private void WriteBankRegister1(byte data)
     {
+        // Get only the 5 relevant bits
+        data &= 0b00011111;
         // Disable writing 0
         if (data == 0x0)
         {
@@ -155,7 +171,6 @@ public class MBC1 : IMBC
     
     /// <summary>
     /// Sets the bank Register 1<br/>
-    /// Prevent the writing of 0x00.
     /// </summary>
     /// <param name="data">The data to write</param>
     private void WriteBankRegister2(byte data)
@@ -186,5 +201,25 @@ public class MBC1 : IMBC
     }
 
 
-    private byte GetFullBank() => (byte) (_bankRegister1 | (_bankRegister2 << 5));
+    private ushort GetRomBank()
+    {
+        // Get the number of banks to mask it against the bank register
+        ushort bankMask = (ushort)((_rom.Length / 0x4000) - 1);
+        ushort bankRegister = (ushort)(_bankRegister1 | (_bankRegister2 << 5));
+        return (ushort)(bankRegister & bankMask);
+    }
+
+    private ushort GetRomBankMod1()
+    {
+        // Get the number of banks to mask it against the bank register
+        ushort bankMask = (ushort)((_rom.Length / 0x4000) - 1);
+        ushort bankRegister = (ushort)(0x0 | (_bankRegister2 << 5));
+        return (ushort)(bankRegister & bankMask);
+    }
+        
+    private byte GetRamBank()
+    {
+        if(_ram == null) return 0;
+        return (byte)(_ram.Length / 0x2000);
+    }
 }
