@@ -9,26 +9,26 @@ namespace RETRO8OI.MBCS;
 /// </summary>
 public class NoMBC : IMBC
 {
-    private byte[] _rom;
-    private byte[]? _ram;
+    public byte[] Rom { get; private set; }
+    public byte[]? Ram { get; private set; }
 
     public NoMBC(byte[] rom, byte[]? ram)
     {
-        this._rom = rom;
-        this._ram = ram;
+        this.Rom = rom;
+        this.Ram = ram;
     }
 
     public byte Read(ushort address)
     {
         // Read in ROM
-        if(address <= MemoryMap.ROM_BANK_N_END) return _rom[address];
+        if(address <= MemoryMap.ROM_BANK_N_END) return Rom[address];
         // Read in RAM
-        if(_ram != null)
+        if(Ram != null)
         {
             int ramAddress = address - MemoryMap.EXTERNAL_RAM_START;
-            if(ramAddress < _ram.Length)
+            if(ramAddress < Ram.Length)
             {
-                return _ram[ramAddress];
+                return Ram[ramAddress];
             }
         }
         // Bad addressing return value
@@ -37,14 +37,14 @@ public class NoMBC : IMBC
 
     public void Write(ushort address, byte data)
     {
-        if( _ram != null && 
+        if( Ram != null && 
             address >= MemoryMap.EXTERNAL_RAM_START && address <= MemoryMap.EXTERNAL_RAM_END
           )
         {
             int ramAddress = address - MemoryMap.EXTERNAL_RAM_START;
-            if(ramAddress < _ram.Length)
+            if(ramAddress < Ram.Length)
             {
-                _ram[ramAddress] = data;
+                Ram[ramAddress] = data;
             }
             
         }
