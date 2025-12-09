@@ -87,7 +87,7 @@ public class MBC1 : IMBC
         // Write to RAM
         else if (address >= 0xA000 && address <= 0xBFFF)
         {
-            WriteRam(data);
+            WriteRam(data, address);
         }
         else
         {
@@ -119,26 +119,15 @@ public class MBC1 : IMBC
         // RAM Space 
         if (_ramGateRegister == 0xA && _ram != null && address >= 0xA000 && address <= 0xBFFF)
         {
-            return _ram[address];
-        }
-        // If mode 1
-        if (_mode == 0x1)
-        {
-            // First banking ROM space
-            if(address <= 0x3FFF) return _rom[address];
-            // Second banking ROM space
-            if (address <= 0x7FFF)
+            int offset = address - 0xA000;
+            if (_mode == 0x0)
             {
-                int offset = address - 0x4000;
-                return _rom[offset + (GetRomBank() * 0x4000)];
+                return _ram[offset % _ram.Length];
             }
-            // RAM Space
-            if (_ramGateRegister == 0xA && _ram != null && address >= 0xA000 && address <= 0xBFFF)
-            {
-                return _ram[address];
-            }
+            // Wrapping in case of not existing bank
+            return _ram[(offset + (GetRamBank() * 0x2000)) % _ram.Length];
         }
-        return 0xFF;
+        throw new InvalidBusRoutingException($"Address {address:X2} is out of cartridge mapped memory range.");
     }
 
 
@@ -193,11 +182,20 @@ public class MBC1 : IMBC
     /// Writes the specified data to RAM with banking depending on mode Register.
     /// </summary>
     /// <param name="data"></param>
-    private void WriteRam(byte data)
+    private void WriteRam(byte data, ushort address)
     {
         // Ignore writing if Ram gate Register disabled or no RAM
         if(_ramGateRegister != 0xA || _ram == null) return;
-        
+
+        if (_mode == 0x0)
+        {
+            _ram[address] = data;
+        }
+        else
+        {
+            int offset =  address - 0xA000;
+            _ram[(offset + (GetRamBank() * 0x2000)) % _ram.Length] = data;
+        }
     }
 
 
@@ -220,6 +218,22 @@ public class MBC1 : IMBC
     private byte GetRamBank()
     {
         if(_ram == null) return 0;
-        return (byte)(_ram.Length / 0x2000);
+        return (byte)(_bankRegister2 & 0x3);
+    }
+
+
+    public void DebugRegisters()
+    {
+        Console.WriteLine();
+        Console.WriteLine("-------- MBC1 REGISTERS --------");
+        Console.WriteLine($"RAM Gate Register      0b{_ramGateRegister:b8} / 0x{_ramGateRegister:X2}");
+        Console.WriteLine($"BANK 1 Register        0b{_bankRegister1:b8} / 0x{_bankRegister1:X2}");
+        Console.WriteLine($"BANK 2 Register        0b{_bankRegister2:b8} / 0x{_bankRegister2:X2}");
+        Console.WriteLine($"Mode                   0b{_mode:b8} / 0x{_mode:X2}");
+        Console.WriteLine("-------- MBC1 BANKS     --------");
+        Console.WriteLine($"0x0000-0x3FFF Bank     0b{GetRomBankMod1():b8} / 0x{GetRomBankMod1():X2}");
+        Console.WriteLine($"0x4000-0x7FFF Bank     0b{GetRomBank():b8} / 0x{GetRomBank():X2}");
+        Console.WriteLine("********************************************************************");
+        
     }
 }

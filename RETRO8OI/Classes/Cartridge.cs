@@ -105,6 +105,7 @@ public class Cartridge : IMemoryMappedDevice
     public byte[]? Ram { get; private set; }
     public bool HasBattery { get; private set; }
     private IMBC _mbc;
+    public IMBC Mbc => _mbc; // For debugging purpose
     
     public Cartridge(String filename)
     {
