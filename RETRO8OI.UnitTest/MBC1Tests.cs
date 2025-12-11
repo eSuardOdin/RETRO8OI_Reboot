@@ -45,5 +45,8 @@ public class MBC1Tests
         Assert.Equal(0b00001111, GetMBC1().RamGateRegister);
         cart.Write(0x0000, 0xCA);
         Assert.Equal(0xA, GetMBC1().RamGateRegister);
+        ResetRegisters();
     }
+    
+    
 }
