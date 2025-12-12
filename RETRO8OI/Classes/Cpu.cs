@@ -43,7 +43,7 @@ public class Cpu
         set => F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10);
     }
 
-    private bool IME;
+    private bool IME, IMEEnable;
     private bool Halted;
     
     // Constructor
@@ -59,6 +59,7 @@ public class Cpu
         PC = 0x100;
 
         IME = false;
+        IMEEnable = false;
         Halted = false;
     }
 
@@ -501,7 +502,7 @@ public class Cpu
                         Bus.Write(HL, L);
                         return 8;
                     case 0x6:   // HALT
-                        
+                        HALT();
                         return 4;
                     case 0x7:   // LD [HL], A
                         Bus.Write(HL, A);
@@ -536,40 +537,54 @@ public class Cpu
             case 0x8:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // ADD A, B
+                        ADD(B);
+                        return 4;
+                    case 0x1:   // ADD A, C
+                        ADD(C);
+                        return 4;
+                    case 0x2:   // ADD A, D
+                        ADD(D);
+                        return 4;
+                    case 0x3:   // ADD A, E
+                        ADD(E);
+                        return 4;
+                    case 0x4:   // ADD A, H
+                        ADD(H);
+                        return 4;
+                    case 0x5:   // ADD A, L
+                        ADD(L);
+                        return 4;
+                    case 0x6:   // ADD A, [HL]
+                        ADD(Bus.Read(HL));
+                        return 8;
+                    case 0x7:   // ADD A, A
+                        ADD(A);
+                        return 4;
+                    case 0x8:   // ADC A, B
+                        ADC(B);
+                        return 4;
+                    case 0x9:   // ADC A, C
+                        ADC(C);
+                        return 4;
+                    case 0xA:   // ADC A, D
+                        ADC(D);
+                        return 4;
+                    case 0xB:   // ADC A, E
+                        ADC(E);
+                        return 4;
+                    case 0xC:   // ADC A, H
+                        ADC(H);
+                        return 4;
+                    case 0xD:   // ADC A, L
+                        ADC(L);
+                        return 4;
+                    case 0xE:   // ADC A, [HL]
+                        ADC(Bus.Read(HL));
+                        return 8;
+                    case 0xF:   // ADC A, A
+                        ADC(A);
+                        return 4;
                 }
                 break;
             
@@ -577,40 +592,54 @@ public class Cpu
             case 0x9:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // SUB A, B
+                        SUB(B);
+                        return 4;
+                    case 0x1:   // SUB A, C
+                        SUB(C);
+                        return 4;
+                    case 0x2:   // SUB A, D
+                        SUB(D);
+                        return 4;
+                    case 0x3:   // SUB A, E
+                        SUB(E);
+                        return 4;
+                    case 0x4:   // SUB A, H
+                        SUB(H);
+                        return 4;
+                    case 0x5:   // SUB A, L
+                        SUB(L);
+                        return 4;
+                    case 0x6:   // SUB A, [HL]
+                        SUB(Bus.Read(HL));
+                        return 8;
+                    case 0x7:   // SUB A, A
+                        SUB(A);
+                        return 4;
+                    case 0x8:   // SBC A, B
+                        SBC(B);
+                        return 4;
+                    case 0x9:   // SBC A, C
+                        SBC(C);
+                        return 4;
+                    case 0xA:   // SBC A, D
+                        SBC(D);
+                        return 4;
+                    case 0xB:   // SBC A, E
+                        SBC(E);
+                        return 4;
+                    case 0xC:   // SBC A, H
+                        SBC(H);
+                        return 4;
+                    case 0xD:   // SBC A, L
+                        SBC(L);
+                        return 4;
+                    case 0xE:   // SBC A, [HL]
+                        SBC(Bus.Read(HL));
+                        return 8;
+                    case 0xF:   // SBC A, A
+                        SBC(A);
+                        return 4;
                 }
                 break;
             
@@ -618,40 +647,54 @@ public class Cpu
             case 0xA:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // AND A, B
+                        AND(B);
+                        return 4;
+                    case 0x1:   // AND A, C
+                        AND(C);
+                        return 4;
+                    case 0x2:   // AND A, D
+                        AND(D);
+                        return 4;
+                    case 0x3:   // AND A, E
+                        AND(E);
+                        return 4;
+                    case 0x4:   // AND A, H
+                        AND(H);
+                        return 4;
+                    case 0x5:   // AND A, L
+                        AND(L);
+                        return 4;
+                    case 0x6:   // AND A, [HL]
+                        AND(Bus.Read(HL));
+                        return 8;
+                    case 0x7:   // AND A, A
+                        AND(A);
+                        return 4;
+                    case 0x8:   // XOR A, B
+                        XOR(B);
+                        return 4;
+                    case 0x9:   // XOR A, C
+                        XOR(C);
+                        return 4;
+                    case 0xA:   // XOR A, D
+                        XOR(D);
+                        return 4;
+                    case 0xB:   // XOR A, E
+                        XOR(E);
+                        return 4;
+                    case 0xC:   // XOR A, H
+                        XOR(H);
+                        return 4;
+                    case 0xD:   // XOR A, L
+                        XOR(L);
+                        return 4;
+                    case 0xE:   // XOR A, [HL]
+                        XOR(Bus.Read(HL));
+                        return 8;
+                    case 0xF:   // XOR A, A
+                        XOR(A);
+                        return 4;
                 }
                 break;
             
@@ -659,40 +702,54 @@ public class Cpu
             case 0xB:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // OR A, B
+                        OR(B);
+                        return 4;
+                    case 0x1:   // OR A, C
+                        OR(C);
+                        return 4;
+                    case 0x2:   // OR A, D
+                        OR(D);
+                        return 4;
+                    case 0x3:   // OR A, E
+                        OR(E);
+                        return 4;
+                    case 0x4:   // OR A, H
+                        OR(H);
+                        return 4;
+                    case 0x5:   // OR A, L
+                        OR(L);
+                        return 4;
+                    case 0x6:   // OR A, [HL]
+                        OR(Bus.Read(HL));
+                        return 8;
+                    case 0x7:   // OR A, A
+                        OR(A);
+                        return 4;
+                    case 0x8:   // CP A, B
+                        CP(B);
+                        return 4;
+                    case 0x9:   // CP A, C
+                        CP(C);
+                        return 4;
+                    case 0xA:   // CP A, D
+                        CP(D);
+                        return 4;
+                    case 0xB:   // CP A, E
+                        CP(E);
+                        return 4;
+                    case 0xC:   // CP A, H
+                        CP(H);
+                        return 4;
+                    case 0xD:   // CP A, L
+                        CP(L);
+                        return 4;
+                    case 0xE:   // CP A, [HL]
+                        CP(Bus.Read(HL));
+                        return 8;
+                    case 0xF:   // CP A, A
+                        CP(A);
+                        return 4;
                 }
                 break;
             
@@ -916,24 +973,142 @@ public class Cpu
         return 4;
     }
     
+    /// <summary>
+    /// Increments the value, set according flags and returns
+    /// incremented value to be assigned to register
+    /// </summary>
+    /// <param name="regValue">The value to increment</param>
+    /// <returns>Resulting value</returns>
     private byte INC(byte regValue)
     {
         int newVal = regValue + 1;
         // Flag setting
         FlagZ = (byte)newVal == 0;
         FlagN = false;
-        FlagH = (((regValue & 0x0F) + 0x1) & 0x10) == 0x10; // Check if nibble overflow
+        FlagH = (regValue & 0x0F) == 0xF; // Check if nibble overflow
         return (byte)newVal;
     }
 
+    /// <summary>
+    /// Decrements the value, set according flags and returns
+    /// decremented value to be assigned to register
+    /// </summary>
+    /// <param name="regValue">The value to decrement</param>
+    /// <returns>Resulting value</returns>
     private byte DEC(byte regValue)
     {
         int newVal = regValue - 1;
         // Flag setting
         FlagZ = (byte)newVal == 0;
         FlagN = true;
-        FlagH = (((regValue & 0x0F) - 0x1) & 0x10) == 0x10;
+        FlagH = (regValue & 0x0F) == 0;
         return (byte)newVal;
+    }
+
+    /// <summary>
+    /// Add the value of a register to Accumulator
+    /// </summary>
+    /// <param name="operand">Value of the register</param>
+    private void ADD(byte operand)
+    {
+        int newVal = A + operand;
+        // Set flags
+        FlagZ = (byte)newVal == 0;
+        FlagN = false;
+        FlagH = (((A & 0x0F) + (operand & 0x0F)) & 0x10) == 0x10;
+        FlagC = newVal > 0xFF;
+
+        A = (byte)newVal;
+    }
+
+    /// <summary>
+    /// Adds the value + carry bit to accumulator
+    /// </summary>
+    /// <param name="operand">Value to add</param>
+    private void ADC(byte operand)
+    {
+        int newVal = A + operand;
+        newVal += FlagC ? 1 : 0;
+        // Set flags
+        FlagZ = (byte)newVal == 0;
+        FlagN = false;
+        FlagH = (((A & 0x0F) + (operand & 0x0F)) & 0x10) == 0x10;
+        FlagC = newVal > 0xFF;
+
+        A = (byte)newVal;
+    }
+
+
+    private void SUB(byte operand)
+    {
+        int newVal = A - operand;
+        // Set flags
+        FlagZ = (byte)newVal == 0;
+        FlagN = true;
+        FlagH = (A & 0x0F) < (operand & 0x0F);
+        FlagC = operand > A;
+
+        A = (byte)newVal;
+    }
+    
+    
+    private void SBC(byte operand)
+    {
+        int cb = FlagC ? 1 : 0;
+        int newVal = A - operand - cb;
+        // Set flags
+        FlagZ = (byte)newVal == 0;
+        FlagN = true;
+        FlagH = (A & 0x0F) < ((operand + cb) & 0x0F);
+        FlagC = (operand + cb) > A;
+
+        A = (byte)newVal;
+    }
+
+
+    private void AND(byte operand)
+    {
+        A &= operand;
+        FlagZ = A == 0;
+        FlagN = false;
+        FlagH = true;
+        FlagC = false;
+    }
+    
+    
+    private void XOR(byte operand)
+    {
+        A ^= operand;
+        FlagZ = A == 0;
+        FlagN = false;
+        FlagH = false;
+        FlagC = false;
+    }
+    
+    
+    private void OR(byte operand)
+    {
+        A |= operand;
+        FlagZ = A == 0;
+        FlagN = false;
+        FlagH = false;
+        FlagC = false;
+    }
+
+
+    /// <summary>
+    /// Compares value in register operand by substracting it to Accumulator
+    ///<br/>Sets the flags but discard the result.
+    /// </summary>
+    /// <param name="operand">Value to compare to Accumulator</param>
+    private void CP(byte operand)
+    {
+        int newVal = A - operand;
+        // Set flags
+        FlagZ = (byte)newVal == 0;
+        FlagN = true;
+        FlagH = (A & 0x0F) < (operand & 0x0F);
+        FlagC = operand > A;
     }
     #endregion
 
@@ -962,5 +1137,11 @@ public class Cpu
             return 12;
         }
         return 8;
+    }
+
+
+    private void HALT()
+    {
+        // TODO (See cycle accurate gameboy emulator)
     }
 }
