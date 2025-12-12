@@ -5,6 +5,7 @@ public class Gameboy
     public int Cycles { get; set; }
     public MemoryBus Bus { get; private set; }
     public Ram Ram { get; private set; }
+    public InterruptRegisters InterruptRegisters { get; private set; }
     public Cpu Cpu { get; private set; }
     public Cartridge Cartridge { get; private set; }
 
@@ -13,6 +14,7 @@ public class Gameboy
         // Init of GB
         Bus = new MemoryBus();
         Ram = new Ram();
+        InterruptRegisters = new InterruptRegisters();
         Cartridge = new Cartridge(cartPath);
         Cpu = new Cpu(Bus);
         Cycles = 0;
@@ -20,6 +22,7 @@ public class Gameboy
         // Binding Memory devices to BUS
         Bus.Map(Ram);
         Bus.Map(Cartridge);
+        Bus.Map(InterruptRegisters);
         
         
     }
