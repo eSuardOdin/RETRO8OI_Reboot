@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace RETRO8OI;
 
 enum Register8 { A, B, C, D, E, H, L, F }
@@ -69,9 +71,9 @@ public class Cpu
         // Get the current opcode
         byte opcode = Bus.Read(PC++);
         int cycles = 0;
-        
+        Console.WriteLine($"[{PC:X2}] => {opcode:X2}");
         // --- Decode ---
-        switch (opcode & 0xF0)
+        switch ((opcode & 0xF0)>>4)
         {
             case 0x0:
                 switch (opcode & 0x0F)
@@ -757,40 +759,42 @@ public class Cpu
             case 0xC:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // RET NZ
+                        return RET(true, !FlagZ);
+                    case 0x1:   // POP BC
+                        BC = POP();
+                        return 12;
+                    case 0x2:   // JP NZ, a16
+                        return JP(true, !FlagZ);
+                    case 0x3:   // JP a16
+                        return JP(true, true);  // isConditional variable is lame
+                    case 0x4:   // CALL NZ, a16
+                        return CALL(true, !FlagZ);
+                    case 0x5:   // PUSH BC
+                        PUSH(BC);
+                        return 16;
+                    case 0x6:   // ADD A, n8
+                        ADD(Bus.Read(PC++));
+                        return 8;
+                    case 0x7:   // RST 0X00
+                        return RST(0x0000);
+                    case 0x8:   // RET Z
+                        return RET(true, FlagZ);
+                    case 0x9:   // RET
+                        return RET(false, true);
+                    case 0xA:   // JP Z, a16
+                        return JP(true, FlagZ);
+                    case 0xB:   // Prefixed opcode
+                        return PREFIX();
+                    case 0xC:   // CALL Z, a16
+                        return CALL(true, FlagZ);
+                    case 0xD:   // CALL a16
+                        return CALL(false, true);
+                    case 0xE:   // ADC A, n8
+                        ADC(Bus.Read(PC++));
+                        return 8;
+                    case 0xF:   // RST 0x08
+                        return RST(0x0008);
                 }
                 break;
             
@@ -923,7 +927,7 @@ public class Cpu
         }
         
         
-        Console.WriteLine($"[{PC:X2}] => {opcode:X2}");
+        
         
         
         return opcode;
@@ -931,8 +935,6 @@ public class Cpu
 
     
     // Flagged and/or Conditionals Instructions
-
-    #region 8-bit
 
     /// <summary>
     /// Decimal Adjust Accumulator.
@@ -1110,10 +1112,7 @@ public class Cpu
         FlagH = (A & 0x0F) < (operand & 0x0F);
         FlagC = operand > A;
     }
-    #endregion
-
-
-    #region 16-bit
+    
 
     private int HLADD(ushort operandReg)
     {
@@ -1126,7 +1125,6 @@ public class Cpu
         return 8;
     }
 
-    #endregion
     
     private int JR(bool condition)
     {
@@ -1139,9 +1137,120 @@ public class Cpu
         return 8;
     }
 
+    /// <summary>
+    /// Fetches the word next to it and sets PC
+    /// to it if not conditional jump or condition
+    /// true.
+    /// </summary>
+    /// <param name="isConditional">If the jump is conditional</param>
+    /// <param name="condition">The condition to check</param>
+    /// <returns>The number of instruction cycles</returns>
+    private int JP(bool isConditional, bool condition)
+    {
+        // Address read no matter the condition
+        byte lo = Bus.Read(PC);
+        byte hi =  Bus.Read((ushort)(PC + 1));
+        ushort jpAddress = (ushort)((hi << 8) | lo);
+        
+        // Get the return address from stack
+        if (condition || !isConditional)
+        {
+            PC = jpAddress;
+            return 16;
+        }
+        return 12;
+    }
+    
+    /// <summary>
+    /// Returns from a function - conditional or not
+    /// </summary>
+    /// <param name="isConditional">If the instruction is conditional</param>
+    /// <param name="condition">The condition to check</param>
+    /// <returns>The number of instruction cycle</returns>
+    private int RET(bool isConditional, bool condition)
+    {
+        // Get the return address from stack
+        if (condition || !isConditional)
+        {
+            PC = POP();
+            return isConditional ? 20 : 16;
+        }
+        return 8;
+    }
 
+    /// <summary>
+    /// Fetches the address NN next to PC, then if condition is met or call is not
+    /// conditional :
+    /// <list type="number">
+    /// <item>Puts PC+1 to the stack in order to return from the function call</item>
+    /// <item>Sets PC to NN to do an implicit jump</item>
+    /// </list>
+    /// </summary>
+    ///<param name="isConditional">If the instruction is conditionnal</param>
+    /// <param name="condition">The condition to check</param>
+    /// <returns>The number of instruction cycle</returns>
+    private int CALL(bool isConditional, bool condition)
+    {
+        ushort address = (ushort)(Bus.Read((ushort)((PC+1) << 8)) | Bus.Read(PC));
+        PC += 2;
+        if (condition || !isConditional)
+        {
+            PUSH(PC);
+            PC = address;
+            return 16;
+        }
+        return 12;
+    }
+
+    /// <summary>
+    /// Unconditional call for Interrupt routines
+    /// </summary>
+    /// <param name="address">The interrupt routine to</param>
+    private int RST(ushort address)
+    {
+        PUSH(PC);
+        PC = address;
+        return 16;
+    }
+    
+    
+    /// <summary>
+    /// Pops a word from the stack and increments it
+    /// </summary>
+    /// <returns>The word popped</returns>
+    private ushort POP()
+    {
+        byte lo = Bus.Read(SP);
+        byte hi = Bus.Read((ushort)(SP + 1));
+        SP += 2;
+        return (ushort)(hi << 8 | lo);
+    }
+
+    /// <summary>
+    /// Decrements the stack and pushes a word to it
+    /// </summary>
+    /// <param name="value">The word to push</param>
+    private void PUSH(ushort value)
+    {
+        SP -= 2;
+        Bus.Write(SP, (byte)value);
+        Bus.Write((ushort)(SP+1), (byte)(value >> 8));
+    }
+    
     private void HALT()
     {
         // TODO (See cycle accurate gameboy emulator)
+    }
+    
+    
+    // ---- Prefix OPCODES ----
+    private int PREFIX()
+    {
+        // Switch OPCODE
+        switch (Bus.Read(PC++))
+        {
+            
+        }
+        return 0;
     }
 }
