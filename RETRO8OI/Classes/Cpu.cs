@@ -45,7 +45,8 @@ public class Cpu
         set => F = value ? (byte)(F | 0x10) : (byte)(F & ~0x10);
     }
 
-    private bool IME, IMEEnable;
+    private bool IME;
+    public bool IMEEnable;
     private bool Halted;
     
     // Constructor
@@ -71,7 +72,7 @@ public class Cpu
         // Get the current opcode
         byte opcode = Bus.Read(PC++);
         int cycles = 0;
-        Console.WriteLine($"[{PC:X2}] => {opcode:X2}");
+        Console.WriteLine($"[{PC-1:X2}] => {opcode:X2}");
         // --- Decode ---
         switch ((opcode & 0xF0)>>4)
         {
@@ -802,40 +803,44 @@ public class Cpu
             case 0xD:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // RET NC
+                        return RET(true, !FlagC);
+                    case 0x1:   // POP DE
+                        DE = POP();
+                        return 12;
+                    case 0x2:   // JP NC, a16
+                        return JP(true, !FlagC);
+                    case 0x3:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0x4:   // CALL NC, a16
+                        return CALL(true, !FlagC);
+                    case 0x5:   // PUSH DE
+                        PUSH(DE);
+                        return 16;
+                    case 0x6:   // SUB A, n8
+                        SUB(Bus.Read(PC++));
+                        return 8;
+                    case 0x7:   // RST 0X10
+                        return RST(0x0010);
+                    case 0x8:   // RET C
+                        return RET(true, FlagC);
+                    case 0x9:   // RETI
+                        RET(false, false);
+                        IME = true;
+                        return 16;
+                    case 0xA:   // JP C, a16
+                        return JP(true, FlagC);
+                    case 0xB:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xC:   // CALL C, a16
+                        return CALL(true, FlagC);
+                    case 0xD:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xE:   // SBC A, n8
+                        SBC(Bus.Read(PC++));
+                        return 8;
+                    case 0xF:   // RST 0X18
+                        return RST(0x0018);
                 }
                 break;
             
@@ -843,40 +848,55 @@ public class Cpu
             case 0xE:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // LDH [a8] A
+                        return LDH(true, Bus.Read(PC++));
+                    case 0x1:   // POP HL
+                        HL = POP();
+                        return 12;
+                    case 0x2:   // LDH [C], A
+                        Bus.Write((ushort)(0xFF00 | C), A);
+                        return 8;
+                    case 0x3:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0x4:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0x5:   // PUSH HL
+                        PUSH(HL);
+                        return 16;
+                    case 0x6:   // AND A, n8
+                        AND(Bus.Read(PC++));
+                        return 8;
+                    case 0x7:   // RST 0X20
+                        return RST(0x0020);
+                    case 0x8:   // ADD SP, e8
+                        sbyte data = (sbyte)Bus.Read(PC++);
+                        // Set flags
+                        FlagC = (SP + data) > 0xFFFF;
+                        FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
+                        FlagZ = false;
+                        FlagN = false;
+                        SP = (ushort)(SP + data);
+                        return 16;
+                    case 0x9:   // JP HL
+                        PC = HL;
+                        return 4;
+                    case 0xA:   // LD [a16] A
+                        byte lo = Bus.Read(PC);
+                        byte hi = Bus.Read((ushort)(PC + 1));
+                        PC += 2;
+                        Bus.Write((ushort)((hi << 8) | lo), A);
+                        return 16;
+                    case 0xB:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xC:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xD:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xE:   // XOR A, n8
+                        XOR(Bus.Read(PC++));
+                        return 8;
+                    case 0xF:   // RST 0X28
+                        return RST(0x0028);
                 }
                 break;
             
@@ -884,51 +904,60 @@ public class Cpu
             case 0xF:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:
-                        break;
-                    case 0x1:
-                        break;
-                    case 0x2:
-                        break;
-                    case 0x3:
-                        break;
-                    case 0x4:
-                        break;
-                    case 0x5:
-                        break;
-                    case 0x6:
-                        break;
-                    case 0x7:
-                        break;
-                    case 0x8:
-                        break;
-                    case 0x9:
-                        break;
-                    case 0xA:
-                        break;
-                    case 0xB:
-                        break;
-                    case 0xC:
-                        break;
-                    case 0xD:
-                        break;
-                    case 0xE:
-                        break;
-                    case 0xF:
-                        break;
-                    default:
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
+                    case 0x0:   // LDH A, [a8]
+                        return LDH(false, Bus.Read(PC++));
+                    case 0x1:   // POP AF
+                        AF = POP();
+                        return 12;
+                    case 0x2:   // LDH A, [C]
+                        A = Bus.Read((ushort)(0xFF00 | C));
+                        return 8;
+                    case 0x3:   // DI
+                        IME = false;
+                        return 4;
+                    case 0x4:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0x5:   // PUSH AF
+                        PUSH(AF);
+                        return 16;
+                    case 0x6:   // OR A, n8
+                        OR(Bus.Read(PC++));
+                        return 8;
+                    case 0x7:   // RST 0X30
+                        return RST(0x0030);
+                    case 0x8:   // LD HL, SP + e8
+                        sbyte data = (sbyte)Bus.Read(PC++);
+                        // Set flags
+                        FlagC = (SP + data) > 0xFFFF;
+                        FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
+                        FlagZ = false;
+                        FlagN = false;
+                        HL = (ushort)(SP + data);
+                        return 12;
+                    case 0x9:   // LD SP, HL
+                        SP = HL;
+                        return 8;
+                    case 0xA:   // LD A, [a16]
+                        byte lo = Bus.Read(PC);
+                        byte hi = Bus.Read((ushort)(PC + 1));
+                        PC += 2;
+                        A = Bus.Read((ushort)( (hi << 8) | lo) );
+                        return 16;
+                    case 0xB:   // EI
+                        IMEEnable = true;
+                        return 4;
+                    case 0xC:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xD:   // ILLEGAL
+                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                    case 0xE:   // CP A, n8
+                        CP(Bus.Read(PC++));
+                        return 8;
+                    case 0xF:   // RST 0x38
+                        return RST(0x0038);
                 }
                 break;
-            
-            
-            default:
-                throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
         }
-        
-        
-        
-        
         
         return opcode;
     }
@@ -1112,8 +1141,23 @@ public class Cpu
         FlagH = (A & 0x0F) < (operand & 0x0F);
         FlagC = operand > A;
     }
-    
 
+    private int LDH(bool isLoadFromAccumulator, byte address)
+    {
+        // If accumulator data to 0xFFxx
+        if (isLoadFromAccumulator)
+        {
+            Bus.Write((ushort)(0xFF00 | address), A);
+        }
+        // If [0xFFxx] to accumulator
+        else
+        {
+            A = Bus.Read((ushort)(0xFF00 | address));
+        }
+        return 12;
+    }
+    
+    
     private int HLADD(ushort operandReg)
     {
         // Setting flags
@@ -1191,12 +1235,15 @@ public class Cpu
     /// <returns>The number of instruction cycle</returns>
     private int CALL(bool isConditional, bool condition)
     {
-        ushort address = (ushort)(Bus.Read((ushort)((PC+1) << 8)) | Bus.Read(PC));
+        byte hi = Bus.Read((ushort)(PC + 1));
+        byte lo = Bus.Read(PC);
+        ushort address = (ushort)((hi << 8) | lo);
         PC += 2;
         if (condition || !isConditional)
         {
             PUSH(PC);
             PC = address;
+            //Console.WriteLine($"CALL, PC IS NOW [{PC:X}].");
             return 16;
         }
         return 12;
