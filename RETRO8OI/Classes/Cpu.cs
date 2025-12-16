@@ -1293,11 +1293,777 @@ public class Cpu
     // ---- Prefix OPCODES ----
     private int PREFIX()
     {
+        byte opcode = Bus.Read(PC++); 
         // Switch OPCODE
         switch (Bus.Read(PC++))
         {
+            case 0x0:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // RLC B
+                        B = RLC(B);
+                        return 8;
+                    case 0x1:   // RLC C
+                        C = RLC(C);
+                        return 8;
+                    case 0x2:   // RLC D
+                        D = RLC(D);
+                        return 8;
+                    case 0x3:   // RLC E
+                        E = RLC(E);
+                        return 8;
+                    case 0x4:   // RLC H
+                        H = RLC(H);
+                        return 8;
+                    case 0x5:   // RLC L
+                        L = RLC(L);
+                        return 8;
+                    case 0x6:   // RLC [HL]
+                        Bus.Write(HL, RLC(Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // RLC A
+                        A = RLC(A);
+                        return 8;
+                    case 0x8:   // RRC B
+                        B = RRC(B);
+                        return 8;
+                    case 0x9:   // RRC C
+                        C = RRC(C);
+                        return 8;
+                    case 0xA:   // RRC D
+                        D = RRC(D);
+                        return 8;
+                    case 0xB:   // RRC E
+                        E = RRC(E);
+                        return 8;
+                    case 0xC:   // RRC H
+                        H = RRC(H);
+                        return 8;
+                    case 0xD:   // RRC L
+                        L = RRC(L);
+                        return 8;
+                    case 0xE:   // RRC [HL]
+                        Bus.Write(HL, RRC(Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // RRC A
+                        A = RRC(A);
+                        return 8;
+                }
+                break;
             
+            
+            case 0x1:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // RL B
+                        B = RL(B);
+                        return 8;
+                    case 0x1:   // RL C
+                        C = RL(C);
+                        return 8;
+                    case 0x2:   // RL D
+                        D = RL(D);
+                        return 8;
+                    case 0x3:   // RL E
+                        E = RL(E);
+                        return 8;
+                    case 0x4:   // RL H
+                        H = RL(H);
+                        return 8;
+                    case 0x5:   // RL L
+                        L = RL(L);
+                        return 8;
+                    case 0x6:   // RL [HL]
+                        Bus.Write(HL, RL(Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // RL A
+                        A = RL(A);
+                        return 8;
+                    case 0x8:   // RR B
+                        B = RR(B);
+                        return 8;
+                    case 0x9:   // RR C
+                        C = RR(C);
+                        return 8;
+                    case 0xA:   // RR D
+                        D = RR(D);
+                        return 8;
+                    case 0xB:   // RR E
+                        E = RR(E);
+                        return 8;
+                    case 0xC:   // RR H
+                        H = RR(H);
+                        return 8;
+                    case 0xD:   // RR L
+                        L = RR(L);
+                        return 8;
+                    case 0xE:   // RR [HL]
+                        Bus.Write(HL, RR(Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // RR A
+                        A = RR(A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x2:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // SLA B
+                        B = SLA(B);
+                        return 8;
+                    case 0x1:   // SLA C
+                        C = SLA(C);
+                        return 8;
+                    case 0x2:   // SLA D
+                        D = SLA(D);
+                        return 8;
+                    case 0x3:   // SLA E
+                        E = SLA(E);
+                        return 8;
+                    case 0x4:   // SLA H
+                        H = SLA(H);
+                        return 8;
+                    case 0x5:   // SLA L
+                        L = SLA(L);
+                        return 8;
+                    case 0x6:   // SLA [HL]
+                        Bus.Write(HL, SLA(Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // SLA A
+                        A = SLA(A);
+                        return 8;
+                    case 0x8:   // SRA B
+                        B = SRA(B);
+                        return 8;
+                    case 0x9:   // SRA C
+                        C = SRA(C);
+                        return 8;
+                    case 0xA:   // SRA D
+                        D = SRA(D);
+                        return 8;
+                    case 0xB:   // SRA E
+                        E = SRA(E);
+                        return 8;
+                    case 0xC:   // SRA H
+                        H = SRA(H);
+                        return 8;
+                    case 0xD:   // SRA L
+                        L = SRA(L);
+                        return 8;
+                    case 0xE:   // SRA [HL]
+                        Bus.Write(HL, SRA(Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // SRA A
+                        A = SRA(A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x3:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // SWAP B
+                        B = SWAP(B);
+                        return 8;
+                    case 0x1:   // SWAP C
+                        C = SWAP(C);
+                        return 8;
+                    case 0x2:   // SWAP D
+                        D = SWAP(D);
+                        return 8;
+                    case 0x3:   // SWAP E
+                        E = SWAP(E);
+                        return 8;
+                    case 0x4:   // SWAP H
+                        H = SWAP(H);
+                        return 8;
+                    case 0x5:   // SWAP L
+                        L = SWAP(L);
+                        return 8;
+                    case 0x6:   // SWAP [HL]
+                        Bus.Write(HL, SWAP(Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // SWAP A
+                        A = SWAP(A);
+                        return 8;
+                    case 0x8:   // SRL B
+                        B = SRL(B);
+                        return 8;
+                    case 0x9:   // SRL C
+                        C = SRL(C);
+                        return 8;
+                    case 0xA:   // SRL D
+                        D = SRL(D);
+                        return 8;
+                    case 0xB:   // SRL E
+                        E = SRL(E);
+                        return 8;
+                    case 0xC:   // SRL H
+                        H = SRL(H);
+                        return 8;
+                    case 0xD:   // SRL L
+                        L = SRL(L);
+                        return 8;
+                    case 0xE:   // SRL [HL]
+                        Bus.Write(HL, SRL(Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // SRL A
+                        A = SRL(A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x4:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // BIT 0, B
+                        BIT(0x1,B);
+                        return 8;
+                    case 0x1:   // BIT 0, C
+                        BIT( 0x1,C);
+                        return 8;
+                    case 0x2:   // BIT 0, D
+                        BIT( 0x1,D);
+                        return 8;
+                    case 0x3:   // BIT 0, E
+                        BIT( 0x1,E);
+                        return 8;
+                    case 0x4:   // BIT 0, H
+                        BIT( 0x1,H);
+                        return 8;
+                    case 0x5:   // BIT 0, L
+                        BIT( 0x1,L);
+                        return 8;
+                    case 0x6:   // BIT 0, [HL]
+                        BIT( 0x1,Bus.Read(HL));
+                        return 12;
+                    case 0x7:   // BIT 0, A
+                        BIT( 0x1,A);
+                        return 8;
+                    case 0x8:   // BIT 1, B
+                        BIT( 0x2,B);
+                        return 8;
+                    case 0x9:   // BIT 1, C
+                        BIT( 0x2,C);
+                        return 8;
+                    case 0xA:   // BIT 1, D
+                        BIT( 0x2,D);
+                        return 8;
+                    case 0xB:   // BIT 1, E
+                        BIT( 0x2,E);
+                        return 8;
+                    case 0xC:   // BIT 1, H
+                        BIT( 0x2,H);
+                        return 8;
+                    case 0xD:   // BIT 1, L
+                        BIT( 0x2,L);
+                        return 8;
+                    case 0xE:   // BIT 1, [HL]
+                        BIT(0x2, Bus.Read(HL));
+                        return 12;
+                    case 0xF:   // BIT 1, A
+                        BIT( 0x2,A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x5:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // BIT 2, B
+                        BIT(0x4,B);
+                        return 8;
+                    case 0x1:   // BIT 2, C
+                        BIT( 0x4,C);
+                        return 8;
+                    case 0x2:   // BIT 2, D
+                        BIT( 0x4,D);
+                        return 8;
+                    case 0x3:   // BIT 2, E
+                        BIT( 0x4,E);
+                        return 8;
+                    case 0x4:   // BIT 2, H
+                        BIT( 0x4,H);
+                        return 8;
+                    case 0x5:   // BIT 2, L
+                        BIT( 0x4,L);
+                        return 8;
+                    case 0x6:   // BIT 2, [HL]
+                        BIT( 0x4,Bus.Read(HL));
+                        return 12;
+                    case 0x7:   // BIT 2, A
+                        BIT( 0x4,A);
+                        return 8;
+                    case 0x8:   // BIT 3, B
+                        BIT( 0x8,B);
+                        return 8;
+                    case 0x9:   // BIT 3, C
+                        BIT( 0x8,C);
+                        return 8;
+                    case 0xA:   // BIT 3, D
+                        BIT( 0x8,D);
+                        return 8;
+                    case 0xB:   // BIT 3, E
+                        BIT( 0x8,E);
+                        return 8;
+                    case 0xC:   // BIT 3, H
+                        BIT( 0x8,H);
+                        return 8;
+                    case 0xD:   // BIT 3, L
+                        BIT( 0x8,L);
+                        return 8;
+                    case 0xE:   // BIT 3, [HL]
+                        BIT(0x8, Bus.Read(HL));
+                        return 12;
+                    case 0xF:   // BIT 3, A
+                        BIT( 0x8,A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x6:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // BIT 4, B
+                        BIT(0x10,B);
+                        return 8;
+                    case 0x1:   // BIT 4, C
+                        BIT( 0x10,C);
+                        return 8;
+                    case 0x2:   // BIT 4, D
+                        BIT( 0x10,D);
+                        return 8;
+                    case 0x3:   // BIT 4, E
+                        BIT( 0x10,E);
+                        return 8;
+                    case 0x4:   // BIT 4, H
+                        BIT( 0x10,H);
+                        return 8;
+                    case 0x5:   // BIT 4, L
+                        BIT( 0x10,L);
+                        return 8;
+                    case 0x6:   // BIT 4, [HL]
+                        BIT( 0x10,Bus.Read(HL));
+                        return 12;
+                    case 0x7:   // BIT 4, A
+                        BIT( 0x10,A);
+                        return 8;
+                    case 0x8:   // BIT 5, B
+                        BIT( 0x20,B);
+                        return 8;
+                    case 0x9:   // BIT 5, C
+                        BIT( 0x20,C);
+                        return 8;
+                    case 0xA:   // BIT 5, D
+                        BIT( 0x20,D);
+                        return 8;
+                    case 0xB:   // BIT 5, E
+                        BIT( 0x20,E);
+                        return 8;
+                    case 0xC:   // BIT 5, H
+                        BIT( 0x20,H);
+                        return 8;
+                    case 0xD:   // BIT 5, L
+                        BIT( 0x20,L);
+                        return 8;
+                    case 0xE:   // BIT 5, [HL]
+                        BIT(0x20, Bus.Read(HL));
+                        return 12;
+                    case 0xF:   // BIT 5, A
+                        BIT( 0x20,A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x7:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   // BIT 6, B
+                        BIT(0x40,B);
+                        return 8;
+                    case 0x1:   // BIT 6, C
+                        BIT( 0x40,C);
+                        return 8;
+                    case 0x2:   // BIT 6, D
+                        BIT( 0x40,D);
+                        return 8;
+                    case 0x3:   // BIT 6, E
+                        BIT( 0x40,E);
+                        return 8;
+                    case 0x4:   // BIT 6, H
+                        BIT( 0x40,H);
+                        return 8;
+                    case 0x5:   // BIT 6, L
+                        BIT( 0x40,L);
+                        return 8;
+                    case 0x6:   // BIT 6, [HL]
+                        BIT( 0x40,Bus.Read(HL));
+                        return 12;
+                    case 0x7:   // BIT 6, A
+                        BIT( 0x40,A);
+                        return 8;
+                    case 0x8:   // BIT 7, B
+                        BIT( 0x80,B);
+                        return 8;
+                    case 0x9:   // BIT 7, C
+                        BIT( 0x80,C);
+                        return 8;
+                    case 0xA:   // BIT 7, D
+                        BIT( 0x80,D);
+                        return 8;
+                    case 0xB:   // BIT 7, E
+                        BIT( 0x80,E);
+                        return 8;
+                    case 0xC:   // BIT 7, H
+                        BIT( 0x80,H);
+                        return 8;
+                    case 0xD:   // BIT 7, L
+                        BIT( 0x80,L);
+                        return 8;
+                    case 0xE:   // BIT 7, [HL]
+                        BIT(0x80, Bus.Read(HL));
+                        return 12;
+                    case 0xF:   // BIT 7, A
+                        BIT( 0x80,A);
+                        return 8;
+                }
+                break;
+            
+            
+            case 0x8:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0x9:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0xA:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0xB:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0xC:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0xD:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0xE:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
+            
+            
+            case 0xF:
+                switch (opcode & 0x0F)
+                {
+                    case 0x0:   //
+                    case 0x1:   //
+                    case 0x2:   //
+                    case 0x3:   //
+                    case 0x4:   //
+                    case 0x5:   //
+                    case 0x6:   //
+                    case 0x7:   //
+                    case 0x8:   //
+                    case 0x9:   //
+                    case 0xA:   //
+                    case 0xB:   //
+                    case 0xC:   //
+                    case 0xD:   // 
+                    case 0xE:   // 
+                    case 0xF:   // 
+                        return 0;
+                }
+                break;
         }
         return 0;
     }
+
+    /// <summary>
+    /// Rotates the register left, bit n°7 goes into FlagC and bit n°0
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte RLC(byte registerVal)
+    {
+        FlagC = (registerVal & 0x80) == 0x80;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = FlagC ? (byte)((registerVal << 1) | 0x1) : (byte)(registerVal << 1);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Rotates the register left, bit n°7 goes into FlagC and FlagC goes to bit n°0
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte RL(byte registerVal)
+    {
+        byte added = FlagC ? (byte)0x1 : (byte)0x0;
+        FlagC = (registerVal & 0x80) == 0x80;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = (byte)((registerVal << 1) | added);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Rotates the register left arithmetically, bit n°7 goes into FlagC and 0 goes to bit n°0
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte SLA(byte registerVal)
+    {
+        FlagC = (registerVal & 0x80) == 0x80;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = (byte)(registerVal << 1);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    
+    /// <summary>
+    /// Rotates the register right, bit n°0 goes into FlagC and bit n°7
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte RRC(byte registerVal)
+    {
+        FlagC = (registerVal & 0x80) == 0x80;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = FlagC ? (byte)((registerVal >> 1) | 0x1) : (byte)(registerVal << 1);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Rotates the register left, bit n°0 goes into FlagC and FlagC goes to bit n°7
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte RR(byte registerVal)
+    {
+        byte added = FlagC ? (byte)0x80 : (byte)0x0;
+        FlagC = (registerVal & 0x1) == 0x1;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = (byte)((registerVal >> 1) | added);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Rotates the register right arithmetically, bit n°0 goes into FlagC, bit n°7 STAYS THE SAME
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte SRA(byte registerVal)
+    {
+        FlagC = (registerVal & 0x10) == 0x10;
+        byte bit7 = (registerVal & 0x80) == 0x80 ? (byte)0x80 : (byte)0x0;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = (byte)((registerVal >> 1) | bit7);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Rotates the register left logically, bit n°0 goes into FlagC and 0 goes to bit n°7
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The rotated value</returns>
+    private byte SRL(byte registerVal)
+    {
+        FlagC = (registerVal & 0x80) == 0x80;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = (byte)(registerVal >> 1);
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Swap low nibble with high nibble of register
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    /// <returns>The swapped value</returns>
+    private byte SWAP(byte registerVal)
+    {
+        FlagC = false;
+        FlagN = false;
+        FlagH = false;
+        byte retVal = (byte)(((registerVal & 0xF) << 4) | ((registerVal & 0xF0) >> 4));
+        FlagZ = retVal == 0x0;
+        return retVal;
+    }
+    
+    /// <summary>
+    /// Tests if bit is set in the register, sets the FlagZ if not set
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    private void BIT(byte index, byte registerVal)
+    {
+        FlagN = false;
+        FlagH = true;
+        FlagZ = (registerVal & index) == index;
+    }
+    
 }
