@@ -1740,23 +1740,54 @@ public class Cpu
             case 0x8:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // RES 0, B
+                        B = RES(0x1,B);
+                        return 8;
+                    case 0x1:   // RES 0, C
+                        C = RES( 0x1,C);
+                        return 8;
+                    case 0x2:   // RES 0, D
+                        D = RES( 0x1,D);
+                        return 8;
+                    case 0x3:   // RES 0, E
+                        E = RES( 0x1,E);
+                        return 8;
+                    case 0x4:   // RES 0, H
+                        H = RES( 0x1,H);
+                        return 8;
+                    case 0x5:   // RES 0, L
+                        L = RES( 0x1,L);
+                        return 8;
+                    case 0x6:   // RES 0, [HL]
+                        Bus.Write(HL, RES( 0x1,Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // RES 0, A
+                        A = RES( 0x1,A);
+                        return 8;
+                    case 0x8:   // RES 1, B
+                        B = RES( 0x2,B);
+                        return 8;
+                    case 0x9:   // RES 1, C
+                        C = RES( 0x2,C);
+                        return 8;
+                    case 0xA:   // RES 1, D
+                        D = RES( 0x2,D);
+                        return 8;
+                    case 0xB:   // RES 1, E
+                        E = RES( 0x2,E);
+                        return 8;
+                    case 0xC:   // RES 1, H
+                        C = RES( 0x2,H);
+                        return 8;
+                    case 0xD:   // RES 1, L
+                        L = RES( 0x2,L);
+                        return 8;
+                    case 0xE:   // RES 1, [HL]
+                        Bus.Write(HL, RES( 0x2,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // RES 1, A
+                        A = RES( 0x2,A);
+                        return 8;
                 }
                 break;
             
@@ -1764,23 +1795,54 @@ public class Cpu
             case 0x9:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // RES 2, B
+                        B = RES(0x4,B);
+                        return 8;
+                    case 0x1:   // RES 2, C
+                        C = RES( 0x4,C);
+                        return 8;
+                    case 0x2:   // RES 2, D
+                        D = RES( 0x4,D);
+                        return 8;
+                    case 0x3:   // RES 2, E
+                        E = RES( 0x4,E);
+                        return 8;
+                    case 0x4:   // RES 2, H
+                        H = RES( 0x4,H);
+                        return 8;
+                    case 0x5:   // RES 2, L
+                        L = RES( 0x4,L);
+                        return 8;
+                    case 0x6:   // RES 2, [HL]
+                        Bus.Write(HL, RES( 0x4,Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // RES 2, A
+                        A = RES( 0x4,A);
+                        return 8;
+                    case 0x8:   // RES 3, B
+                        B = RES( 0x8,B);
+                        return 8;
+                    case 0x9:   // RES 3, C
+                        C = RES( 0x8,C);
+                        return 8;
+                    case 0xA:   // RES 3, D
+                        D = RES( 0x8,D);
+                        return 8;
+                    case 0xB:   // RES 3, E
+                        E = RES( 0x8,E);
+                        return 8;
+                    case 0xC:   // RES 3, H
+                        H = RES( 0x8,H);
+                        return 8;
+                    case 0xD:   // RES 3, L
+                        L = RES( 0x8,L);
+                        return 8;
+                    case 0xE:   // RES 3, [HL]
+                        Bus.Write(HL, RES( 0x8,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // RES 3, A
+                        A = RES( 0x8,A);
+                        return 8;
                 }
                 break;
             
@@ -1788,23 +1850,54 @@ public class Cpu
             case 0xA:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // RES 4, B
+                        B = RES(0x10,B);
+                        return 8;
+                    case 0x1:   // RES 4, C
+                        C = RES( 0x10,C);
+                        return 8;
+                    case 0x2:   // RES 4, D
+                        D = RES( 0x10,D);
+                        return 8;
+                    case 0x3:   // RES 4, E
+                        E = RES( 0x10,E);
+                        return 8;
+                    case 0x4:   // RES 4, H
+                        H = RES( 0x10,H);
+                        return 8;
+                    case 0x5:   // RES 4, L
+                        L = RES( 0x10,L);
+                        return 8;
+                    case 0x6:   // RES 4, [HL]
+                        Bus.Write(HL, RES( 0x10,Bus.Read(HL)));;
+                        return 16;
+                    case 0x7:   // RES 4, A
+                        A = RES( 0x10,A);
+                        return 8;
+                    case 0x8:   // RES 5, B
+                        B = RES( 0x20,B);
+                        return 8;
+                    case 0x9:   // RES 5, C
+                        C = RES( 0x20,C);
+                        return 8;
+                    case 0xA:   // RES 5, D
+                        D = RES( 0x20,D);
+                        return 8;
+                    case 0xB:   // RES 5, E
+                        E = RES( 0x20,E);
+                        return 8;
+                    case 0xC:   // RES 5, H
+                        H = RES( 0x20,H);
+                        return 8;
+                    case 0xD:   // RES 5, L
+                        L = RES( 0x20,L);
+                        return 8;
+                    case 0xE:   // RES 5, [HL]
+                        Bus.Write(HL, RES( 0x20,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // RES 5, A
+                        A = RES( 0x20,A);
+                        return 8;
                 }
                 break;
             
@@ -1812,23 +1905,54 @@ public class Cpu
             case 0xB:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // RES 6, B
+                        B = RES(0x40,B);
+                        return 8;
+                    case 0x1:   // RES 6, C
+                        C = RES( 0x40,C);
+                        return 8;
+                    case 0x2:   // RES 6, D
+                        D = RES( 0x40,D);
+                        return 8;
+                    case 0x3:   // RES 6, E
+                        E = RES( 0x40,E);
+                        return 8;
+                    case 0x4:   // RES 6, H
+                        H = RES( 0x40,H);
+                        return 8;
+                    case 0x5:   // RES 6, L
+                        L = RES( 0x40,L);
+                        return 8;
+                    case 0x6:   // RES 6, [HL]
+                        Bus.Write(HL, RES( 0x40,Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // RES 6, A
+                        A = RES( 0x40,A);
+                        return 8;
+                    case 0x8:   // RES 7, B
+                        B = RES( 0x80,B);
+                        return 8;
+                    case 0x9:   // RES 7, C
+                        C = RES( 0x80,C);
+                        return 8;
+                    case 0xA:   // RES 7, D
+                        D = RES( 0x80,D);
+                        return 8;
+                    case 0xB:   // RES 7, E
+                        E = RES( 0x80,E);
+                        return 8;
+                    case 0xC:   // RES 7, H
+                        H = RES( 0x80,H);
+                        return 8;
+                    case 0xD:   // RES 7, L
+                        L = RES( 0x80,L);
+                        return 8;
+                    case 0xE:   // RES 7, [HL]
+                        Bus.Write(HL, RES( 0x80,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // RES 7, A
+                        A = RES( 0x80,A);
+                        return 8;
                 }
                 break;
             
@@ -1836,23 +1960,54 @@ public class Cpu
             case 0xC:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // SET 0, B
+                        B = SET(0x1,B);
+                        return 8;
+                    case 0x1:   // SET 0, C
+                        C = SET( 0x1,C);
+                        return 8;
+                    case 0x2:   // SET 0, D
+                        D = SET( 0x1,D);
+                        return 8;
+                    case 0x3:   // SET 0, E
+                        E = SET( 0x1,E);
+                        return 8;
+                    case 0x4:   // SET 0, H
+                        H = SET( 0x1,H);
+                        return 8;
+                    case 0x5:   // SET 0, L
+                        L = SET( 0x1,L);
+                        return 8;
+                    case 0x6:   // SET 0, [HL]
+                        Bus.Write(HL, SET( 0x1,Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // SET 0, A
+                        A = SET( 0x1,A);
+                        return 8;
+                    case 0x8:   // SET 1, B
+                        B = SET( 0x2,B);
+                        return 8;
+                    case 0x9:   // SET 1, C
+                        C = SET( 0x2,C);
+                        return 8;
+                    case 0xA:   // SET 1, D
+                        D = SET( 0x2,D);
+                        return 8;
+                    case 0xB:   // SET 1, E
+                        E = SET( 0x2,E);
+                        return 8;
+                    case 0xC:   // SET 1, H
+                        C = SET( 0x2,H);
+                        return 8;
+                    case 0xD:   // SET 1, L
+                        L = SET( 0x2,L);
+                        return 8;
+                    case 0xE:   // SET 1, [HL]
+                        Bus.Write(HL, SET( 0x2,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // SET 1, A
+                        A = SET( 0x2,A);
+                        return 8;
                 }
                 break;
             
@@ -1860,23 +2015,54 @@ public class Cpu
             case 0xD:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // SET 2, B
+                        B = SET(0x4,B);
+                        return 8;
+                    case 0x1:   // SET 2, C
+                        C = SET( 0x4,C);
+                        return 8;
+                    case 0x2:   // SET 2, D
+                        D = SET( 0x4,D);
+                        return 8;
+                    case 0x3:   // SET 2, E
+                        E = SET( 0x4,E);
+                        return 8;
+                    case 0x4:   // SET 2, H
+                        H = SET( 0x4,H);
+                        return 8;
+                    case 0x5:   // SET 2, L
+                        L = SET( 0x4,L);
+                        return 8;
+                    case 0x6:   // SET 2, [HL]
+                        Bus.Write(HL, SET( 0x4,Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // SET 2, A
+                        A = SET( 0x4,A);
+                        return 8;
+                    case 0x8:   // SET 3, B
+                        B = SET( 0x8,B);
+                        return 8;
+                    case 0x9:   // SET 3, C
+                        C = SET( 0x8,C);
+                        return 8;
+                    case 0xA:   // SET 3, D
+                        D = SET( 0x8,D);
+                        return 8;
+                    case 0xB:   // SET 3, E
+                        E = SET( 0x8,E);
+                        return 8;
+                    case 0xC:   // SET 3, H
+                        H = SET( 0x8,H);
+                        return 8;
+                    case 0xD:   // SET 3, L
+                        L = SET( 0x8,L);
+                        return 8;
+                    case 0xE:   // SET 3, [HL]
+                        Bus.Write(HL, SET( 0x8,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // SET 3, A
+                        A = SET( 0x8,A);
+                        return 8;
                 }
                 break;
             
@@ -1884,23 +2070,54 @@ public class Cpu
             case 0xE:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // SET 4, B
+                        B = SET(0x10,B);
+                        return 8;
+                    case 0x1:   // SET 4, C
+                        C = SET( 0x10,C);
+                        return 8;
+                    case 0x2:   // SET 4, D
+                        D = SET( 0x10,D);
+                        return 8;
+                    case 0x3:   // SET 4, E
+                        E = SET( 0x10,E);
+                        return 8;
+                    case 0x4:   // SET 4, H
+                        H = SET( 0x10,H);
+                        return 8;
+                    case 0x5:   // SET 4, L
+                        L = SET( 0x10,L);
+                        return 8;
+                    case 0x6:   // SET 4, [HL]
+                        Bus.Write(HL, SET( 0x10,Bus.Read(HL)));;
+                        return 16;
+                    case 0x7:   // SET 4, A
+                        A = SET( 0x10,A);
+                        return 8;
+                    case 0x8:   // SET 5, B
+                        B = SET( 0x20,B);
+                        return 8;
+                    case 0x9:   // SET 5, C
+                        C = SET( 0x20,C);
+                        return 8;
+                    case 0xA:   // SET 5, D
+                        D = SET( 0x20,D);
+                        return 8;
+                    case 0xB:   // SET 5, E
+                        E = SET( 0x20,E);
+                        return 8;
+                    case 0xC:   // SET 5, H
+                        H = SET( 0x20,H);
+                        return 8;
+                    case 0xD:   // SET 5, L
+                        L = SET( 0x20,L);
+                        return 8;
+                    case 0xE:   // SET 5, [HL]
+                        Bus.Write(HL, SET( 0x20,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // SET 5, A
+                        A = SET( 0x20,A);
+                        return 8;
                 }
                 break;
             
@@ -1908,23 +2125,54 @@ public class Cpu
             case 0xF:
                 switch (opcode & 0x0F)
                 {
-                    case 0x0:   //
-                    case 0x1:   //
-                    case 0x2:   //
-                    case 0x3:   //
-                    case 0x4:   //
-                    case 0x5:   //
-                    case 0x6:   //
-                    case 0x7:   //
-                    case 0x8:   //
-                    case 0x9:   //
-                    case 0xA:   //
-                    case 0xB:   //
-                    case 0xC:   //
-                    case 0xD:   // 
-                    case 0xE:   // 
-                    case 0xF:   // 
-                        return 0;
+                    case 0x0:   // SET 6, B
+                        B = SET(0x40,B);
+                        return 8;
+                    case 0x1:   // SET 6, C
+                        C = SET( 0x40,C);
+                        return 8;
+                    case 0x2:   // SET 6, D
+                        D = SET( 0x40,D);
+                        return 8;
+                    case 0x3:   // SET 6, E
+                        E = SET( 0x40,E);
+                        return 8;
+                    case 0x4:   // SET 6, H
+                        H = SET( 0x40,H);
+                        return 8;
+                    case 0x5:   // SET 6, L
+                        L = SET( 0x40,L);
+                        return 8;
+                    case 0x6:   // SET 6, [HL]
+                        Bus.Write(HL, SET( 0x40,Bus.Read(HL)));
+                        return 16;
+                    case 0x7:   // SET 6, A
+                        A = SET( 0x40,A);
+                        return 8;
+                    case 0x8:   // SET 7, B
+                        B = SET( 0x80,B);
+                        return 8;
+                    case 0x9:   // SET 7, C
+                        C = SET( 0x80,C);
+                        return 8;
+                    case 0xA:   // SET 7, D
+                        D = SET( 0x80,D);
+                        return 8;
+                    case 0xB:   // SET 7, E
+                        E = SET( 0x80,E);
+                        return 8;
+                    case 0xC:   // SET 7, H
+                        H = SET( 0x80,H);
+                        return 8;
+                    case 0xD:   // SET 7, L
+                        L = SET( 0x80,L);
+                        return 8;
+                    case 0xE:   // SET 7, [HL]
+                        Bus.Write(HL, SET( 0x80,Bus.Read(HL)));
+                        return 16;
+                    case 0xF:   // SET 7, A
+                        A = SET( 0x80,A);
+                        return 8;
                 }
                 break;
         }
@@ -2064,6 +2312,25 @@ public class Cpu
         FlagN = false;
         FlagH = true;
         FlagZ = (registerVal & index) == index;
+    }
+    
+    /// <summary>
+    /// Sets the bit at index value
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    private byte SET(byte index, byte registerVal)
+    {
+        return (byte)(registerVal | index);
+    }
+    
+    /// <summary>
+    /// Unsets the bit at index value
+    /// </summary>
+    /// <param name="registerVal">The value of register (or memory address pointed to by HL)</param>
+    private byte RES(byte index, byte registerVal)
+    {
+        byte notIndex = (byte)(~index);
+        return (byte)(registerVal & notIndex);
     }
     
 }

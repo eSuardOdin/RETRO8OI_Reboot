@@ -18,7 +18,7 @@ else
         Cartridge cartridge = new Cartridge(args[0]);
         Gameboy gameboy = new(args[0]);
 
-        for (int i = 0; i < 0x1000; i++)
+        for (;;)
         {
             gameboy.Cpu.Execute();
         }
