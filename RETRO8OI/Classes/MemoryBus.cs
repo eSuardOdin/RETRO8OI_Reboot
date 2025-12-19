@@ -21,6 +21,7 @@ public class MemoryBus
                 return dev.Read(address);
             }
         }
+        throw new Exception($"Address [0x{address:X4}] not mapped yet.");
         return 0xFF;
     }
 
@@ -34,6 +35,7 @@ public class MemoryBus
                 return;
             }
         }
+        throw new Exception($"Address [0x{address:X4}] not mapped yet.");
     }
 
     public void Map(IMemoryMappedDevice dev)

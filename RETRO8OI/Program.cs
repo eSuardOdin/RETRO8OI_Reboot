@@ -18,9 +18,11 @@ else
         Cartridge cartridge = new Cartridge(args[0]);
         Gameboy gameboy = new(args[0]);
 
-        for (;;)
+        for(int i = 0; i < 0x10000; i++)
         {
             gameboy.Cpu.Execute();
+            //gameboy.Cpu.PrintRegisters();
+            //gameboy.Display.DrawVram();
         }
     }
     catch (Exception e)

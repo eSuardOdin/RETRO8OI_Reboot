@@ -21,7 +21,8 @@ public class Cpu
     private ushort BC { get { return (ushort)(B << 8 | C); } set { B = (byte)(value >> 8); C = (byte)(value & 0xFF); } }
     private ushort DE { get { return (ushort)(D << 8 | E); } set { D = (byte)(value >> 8); E = (byte)(value & 0xFF); } }
     private ushort HL { get { return (ushort)(H << 8 | L); } set { H = (byte)(value >> 8); L = (byte)(value & 0xFF); } }
-    private ushort SP, PC;
+    private ushort SP;
+    public ushort PC { get; private set; }
     
     // Flags
     private bool FlagZ 
@@ -1173,11 +1174,14 @@ public class Cpu
     private int JR(bool condition)
     {
         sbyte signedOffest = (sbyte)Bus.Read(PC++);
+        Console.Write($"Trying to JR [{signedOffest}] -> Condition ");
         if (condition)
         {
-            PC = (ushort)(PC + signedOffest);    
+            PC = (ushort)(PC + signedOffest);
+            Console.WriteLine($"MET");
             return 12;
         }
+        Console.WriteLine($"NOT MET");
         return 8;
     }
 
@@ -2331,6 +2335,21 @@ public class Cpu
     {
         byte notIndex = (byte)(~index);
         return (byte)(registerVal & notIndex);
+    }
+
+
+
+    public void PrintRegisters()
+    {
+        Console.WriteLine("=== CPU Registers ===");
+        Console.WriteLine($"AF: 0x{AF:X4}  (A: 0x{A:X2}, F: 0x{F:X2})");
+        Console.WriteLine($"BC: 0x{BC:X4}  (B: 0x{B:X2}, C: 0x{C:X2})");
+        Console.WriteLine($"DE: 0x{DE:X4}  (D: 0x{D:X2}, E: 0x{E:X2})");
+        Console.WriteLine($"HL: 0x{HL:X4}  (H: 0x{H:X2}, L: 0x{L:X2})");
+        Console.WriteLine($"SP: 0x{SP:X4}");
+        Console.WriteLine($"PC: 0x{PC:X4}");
+        Console.WriteLine($"Flags: Z:{(F >> 7 & 1)} N:{(F >> 6 & 1)} H:{(F >> 5 & 1)} C:{(F >> 4 & 1)}");
+        Console.WriteLine("====================");
     }
     
 }
