@@ -30,11 +30,4 @@ public class Display
 
     }
 
-    public void DrawVram()
-    {
-        for (int i = 0; i < Vram.Vram.Length; i+=8)
-        {
-            Console.WriteLine($"\n\n{Vram.Vram[i+0]:X2} {Vram.Vram[i+1]:X2} {Vram.Vram[i+2]:X2} {Vram.Vram[i+3]:X2} {Vram.Vram[i+4]:X2} {Vram.Vram[i+5]:X2} {Vram.Vram[i+6]:X2} {Vram.Vram[i+7]:X2}");
-        }
-    }
 }

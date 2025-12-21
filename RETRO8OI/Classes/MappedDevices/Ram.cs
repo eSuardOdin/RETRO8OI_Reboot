@@ -4,26 +4,17 @@ namespace RETRO8OI;
 
 public class Ram : IMemoryMappedDevice
 {
-    public byte[] Vram { get; private set; }
     public byte[] Wram { get; private set; }
     public byte[] Hram { get; private set; }
 
     public Ram()
     {
-        Vram = new byte[0x2000];
         Wram = new byte[0x2000];
         Hram = new byte[0x7F];
     }
     
     public void Write(ushort address, byte data)
     {
-        // Write VRAM
-        if (address >= 0x8000 && address <= 0x9FFF)
-        {
-            Console.WriteLine($"Writing [{data:X2}] to VRAM [{address:X4}]");
-            Vram[address - 0x8000] =  data;
-            return;
-        }
         // Write WRAM
         if (address >= 0xC000 && address <= 0xDFFF)
         {
@@ -50,12 +41,7 @@ public class Ram : IMemoryMappedDevice
 
     public byte Read(ushort address)
     {
-        // Read VRAM
-        if (address >= 0x8000 && address <= 0x9FFF)
-        {
-            Console.WriteLine($"Reading VRAM [{address:X4}]");
-            return Vram[address - 0x8000];
-        }
+        
         // Read WRAM
         if (address >= 0xC000 && address <= 0xDFFF)
         {
@@ -80,6 +66,6 @@ public class Ram : IMemoryMappedDevice
 
     public bool Accept(ushort address)
     {
-        return (address >= 0x8000 && address <= 0x9FFF) || (address >= 0xC000 && address <= 0xDFFF) || (address >= 0xE000 && address <= 0xFDFF) || (address >= 0xFF80 && address <= 0xFFFE);
+        return (address >= 0xC000 && address <= 0xDFFF) || (address >= 0xE000 && address <= 0xFDFF) || (address >= 0xFF80 && address <= 0xFFFE);
     }
 }

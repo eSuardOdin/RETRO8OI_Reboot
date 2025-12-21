@@ -15,3 +15,6 @@
 
 
 
+
+# Todo 
+The Ppu will be implementing OAM and Vram so it's current mode will take care of what R/W to VRam/OAM would return -> To refactor.

@@ -2,13 +2,16 @@ namespace RETRO8OI;
 
 public class Gameboy
 {
+
+    
     public int Cycles { get; set; }
     public MemoryBus Bus { get; private set; }
     public Ram Ram { get; private set; }
-    public OAM Oam { get; private set; }
-    public LCD Lcd { get; private set; }
+    //public OAM Oam { get; private set; }
+    //public LCD Lcd { get; private set; }
     public InterruptRegisters InterruptRegisters { get; private set; }
     public Cpu Cpu { get; private set; }
+    public Ppu Ppu { get; private set; }
     public Cartridge Cartridge { get; private set; }
     public Display Display { get; private set; }
     public Joypad Joypad { get; private set; }
@@ -21,10 +24,11 @@ public class Gameboy
         // Init of GB
         Bus = new MemoryBus();
         Ram = new Ram();
-        Oam = new OAM();
+        //Lcd = new LCD();
+        //Oam = new OAM();
+        Ppu = new Ppu(Bus);
         InterruptRegisters = new InterruptRegisters();
         Cartridge = new Cartridge(cartPath);
-        Lcd = new LCD();
         Joypad = new Joypad();
         Serial = new Serial();
         
@@ -37,8 +41,9 @@ public class Gameboy
         Bus.Map(Ram);
         Bus.Map(Cartridge);
         Bus.Map(InterruptRegisters);
-        Bus.Map(Oam);
-        Bus.Map(Lcd);
+        //Bus.Map(Oam);
+        //Bus.Map(Lcd);
+        Bus.Map(Ppu);
         Bus.Map(Joypad);
         Bus.Map(Serial);
     }
