@@ -34,7 +34,7 @@ public class Ppu : IMemoryMappedDevice
     {
         Bus = bus;
         Vram = new byte[0x2000];
-        OAM = new byte[0x10];
+        OAM = new byte[0xA0];
         Mode = 0;
     }
     

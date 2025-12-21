@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace RETRO8OI;
 
 public class Gameboy
@@ -12,6 +14,7 @@ public class Gameboy
     public InterruptRegisters InterruptRegisters { get; private set; }
     public Cpu Cpu { get; private set; }
     public Ppu Ppu { get; private set; }
+    public Apu Apu { get; private set; }
     public Cartridge Cartridge { get; private set; }
     public Display Display { get; private set; }
     public Joypad Joypad { get; private set; }
@@ -27,6 +30,7 @@ public class Gameboy
         //Lcd = new LCD();
         //Oam = new OAM();
         Ppu = new Ppu(Bus);
+        Apu = new Apu();
         InterruptRegisters = new InterruptRegisters();
         Cartridge = new Cartridge(cartPath);
         Joypad = new Joypad();
@@ -44,6 +48,7 @@ public class Gameboy
         //Bus.Map(Oam);
         //Bus.Map(Lcd);
         Bus.Map(Ppu);
+        Bus.Map(Apu);
         Bus.Map(Joypad);
         Bus.Map(Serial);
     }

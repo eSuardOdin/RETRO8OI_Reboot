@@ -35,7 +35,12 @@ public class Ram : IMemoryMappedDevice
             Hram[address - 0xFF80] = data;
             return;
         }
-        
+        // Prohibited mem
+        if (address >= 0xFEA0 && address <= 0xFEFF)
+        {
+            Console.WriteLine($"Writing [{data:X2}] to PROHIBITED MEMORY [{address:X4}] -> no writing");
+            return;
+        }
         throw new InvalidBusRoutingException($"Error writing [{data:X2}] to [{address:X4}] in Ram.");
     }
 
@@ -59,13 +64,21 @@ public class Ram : IMemoryMappedDevice
             Console.WriteLine($"Reading HRAM [{address:X4}]");
             return Hram[address - 0xFF80];
         }
-        
+        // Prohibited mem
+        if (address >= 0xFEA0 && address <= 0xFEFF)
+        {
+            Console.WriteLine($"Reading from PROHIBITED MEMORY [{address:X4}] -> sending garbage");
+            return 0xFF;
+        }
         throw new InvalidBusRoutingException($"Error reading [{address:X4}] in Ram.");
         return 0xFF;
     }
 
     public bool Accept(ushort address)
     {
-        return (address >= 0xC000 && address <= 0xDFFF) || (address >= 0xE000 && address <= 0xFDFF) || (address >= 0xFF80 && address <= 0xFFFE);
+        return (address >= 0xC000 && address <= 0xDFFF) ||
+               (address >= 0xE000 && address <= 0xFDFF) || 
+               (address >= 0xFEA0 && address <= 0xFEFF) ||  // Prohibited by Nintendo, used somehow by Tetris... 
+               (address >= 0xFF80 && address <= 0xFFFE);
     }
 }
