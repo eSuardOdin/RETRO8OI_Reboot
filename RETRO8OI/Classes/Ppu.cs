@@ -18,8 +18,8 @@ public class Ppu : IMemoryMappedDevice
     public byte[] Vram { get; private set; }
     private byte OamDma = 0;
     private byte LCDC = 0;
-    private byte LY = 0;
-    private byte LYC = 0;
+    private byte LY;
+    private byte LYC;
     private byte STAT = 0;
     private byte SCY = 0;
     private byte SCX = 0;
@@ -66,10 +66,12 @@ public class Ppu : IMemoryMappedDevice
                 case 0xFF44:
                     Console.WriteLine($"Writing [{data:X2}] to LY [{address:X4}]");
                     LY = data;
+                    if((STAT & 0x40 ) == 0x40 && LY == LYC) Bus.Write(0xFF0F, 0x2); // STAT Interrupt if LY == LYC
                     return;
                 case 0xFF45:
                     Console.WriteLine($"Writing [{data:X2}] to LYC [{address:X4}]");
                     LYC = data;
+                    if((STAT & 0x40 ) == 0x40 && LY == LYC) Bus.Write(0xFF0F, 0x2); // STAT Interrupt if LY == LYC
                     return;
                 case 0xFF41:
                     Console.WriteLine($"Writing [{data:X2}] to LCD STAT [{address:X4}]");
@@ -175,7 +177,6 @@ public class Ppu : IMemoryMappedDevice
                     {
                         // Going to HBlank
                         Mode = 0x0;
-                        LY++;
                         VerticalCyclesCount -= 172;
                     }
                     break;
@@ -183,6 +184,7 @@ public class Ppu : IMemoryMappedDevice
                     if (VerticalCyclesCount >= 204)
                     {
                         LY++;
+                        if((STAT & 0x40 ) == 0x40 && LY == LYC) Bus.Write(0xFF0F, 0x2); // STAT Interrupt if LY == LYC
                         if (LY > 144)
                         {
                             Mode = 0x1; // Switch to VBlank
@@ -204,7 +206,8 @@ public class Ppu : IMemoryMappedDevice
                         {
                             LY -= 153;
                             Mode = 0x2; // Switch to OAM Scan
-                            // VBlankInterruptFlag()
+                            // Write VBlank interrupt request flag
+                            Bus.Write(0xFF0F, 0x1);
                         }
                     }
                     break;

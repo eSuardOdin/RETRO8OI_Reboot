@@ -7,6 +7,9 @@ enum Register16 { AF, BC, DE, HL }
 
 public class Cpu
 {
+    // CPU Events
+    // public event EventHandler<bool> StopModeToggled; // TODO When working on STOP instruction 
+    
     public MemoryBus Bus { get; private set; }
     
     // Registers

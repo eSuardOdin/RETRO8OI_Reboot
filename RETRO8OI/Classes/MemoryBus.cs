@@ -35,7 +35,7 @@ public class MemoryBus
                 return;
             }
         }
-        throw new Exception($"Address [0x{address:X4}] not mapped yet.");
+        //throw new Exception($"Address [0x{address:X4}] not mapped yet.");
     }
 
     public void Map(IMemoryMappedDevice dev)
