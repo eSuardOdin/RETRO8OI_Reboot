@@ -76,7 +76,7 @@ public class Cpu
         // Get the current opcode
         byte opcode = Bus.Read(PC++);
         int cycles = 0;
-        Console.WriteLine($"[{PC-1:X2}] => {opcode:X2}");
+        //Console.WriteLine($"[{PC-1:X2}] => {opcode:X2}");
         // --- Decode ---
         switch ((opcode & 0xF0)>>4)
         {
@@ -1177,14 +1177,14 @@ public class Cpu
     private int JR(bool condition)
     {
         sbyte signedOffest = (sbyte)Bus.Read(PC++);
-        Console.Write($"Trying to JR [{signedOffest}] -> Condition ");
+        //Console.Write($"Trying to JR [{signedOffest}] -> Condition ");
         if (condition)
         {
             PC = (ushort)(PC + signedOffest);
-            Console.WriteLine($"MET");
+            //Console.WriteLine($"MET");
             return 12;
         }
-        Console.WriteLine($"NOT MET");
+        //Console.WriteLine($"NOT MET");
         return 8;
     }
 
@@ -1250,7 +1250,7 @@ public class Cpu
         {
             PUSH(PC);
             PC = address;
-            //Console.WriteLine($"CALL, PC IS NOW [{PC:X}].");
+            ////Console.WriteLine($"CALL, PC IS NOW [{PC:X}].");
             return 16;
         }
         return 12;
@@ -2344,15 +2344,15 @@ public class Cpu
 
     public void PrintRegisters()
     {
-        Console.WriteLine("=== CPU Registers ===");
-        Console.WriteLine($"AF: 0x{AF:X4}  (A: 0x{A:X2}, F: 0x{F:X2})");
-        Console.WriteLine($"BC: 0x{BC:X4}  (B: 0x{B:X2}, C: 0x{C:X2})");
-        Console.WriteLine($"DE: 0x{DE:X4}  (D: 0x{D:X2}, E: 0x{E:X2})");
-        Console.WriteLine($"HL: 0x{HL:X4}  (H: 0x{H:X2}, L: 0x{L:X2})");
-        Console.WriteLine($"SP: 0x{SP:X4}");
-        Console.WriteLine($"PC: 0x{PC:X4}");
-        Console.WriteLine($"Flags: Z:{(F >> 7 & 1)} N:{(F >> 6 & 1)} H:{(F >> 5 & 1)} C:{(F >> 4 & 1)}");
-        Console.WriteLine("====================");
+        //Console.WriteLine("=== CPU Registers ===");
+        //Console.WriteLine($"AF: 0x{AF:X4}  (A: 0x{A:X2}, F: 0x{F:X2})");
+        //Console.WriteLine($"BC: 0x{BC:X4}  (B: 0x{B:X2}, C: 0x{C:X2})");
+        //Console.WriteLine($"DE: 0x{DE:X4}  (D: 0x{D:X2}, E: 0x{E:X2})");
+        //Console.WriteLine($"HL: 0x{HL:X4}  (H: 0x{H:X2}, L: 0x{L:X2})");
+        //Console.WriteLine($"SP: 0x{SP:X4}");
+        //Console.WriteLine($"PC: 0x{PC:X4}");
+        //Console.WriteLine($"Flags: Z:{(F >> 7 & 1)} N:{(F >> 6 & 1)} H:{(F >> 5 & 1)} C:{(F >> 4 & 1)}");
+        //Console.WriteLine("====================");
     }
     
 }

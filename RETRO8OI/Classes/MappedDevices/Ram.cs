@@ -18,7 +18,7 @@ public class Ram : IMemoryMappedDevice
         // Write WRAM
         if (address >= 0xC000 && address <= 0xDFFF)
         {
-            Console.WriteLine($"Writing [{data:X2}] to WRAM [{address:X4}]");
+            //Console.WriteLine($"Writing [{data:X2}] to WRAM [{address:X4}]");
             Wram[address - 0xC000] = data;
             return;
         }
@@ -31,14 +31,14 @@ public class Ram : IMemoryMappedDevice
         // Write HRAM
         if (address >= 0xFF80 && address <= 0xFFFE)
         {
-            Console.WriteLine($"Writing [{data:X2}] to HRAM [{address:X4}]");
+            //Console.WriteLine($"Writing [{data:X2}] to HRAM [{address:X4}]");
             Hram[address - 0xFF80] = data;
             return;
         }
         // Prohibited mem
         if (address >= 0xFEA0 && address <= 0xFEFF)
         {
-            Console.WriteLine($"Writing [{data:X2}] to PROHIBITED MEMORY [{address:X4}] -> no writing");
+            //Console.WriteLine($"Writing [{data:X2}] to PROHIBITED MEMORY [{address:X4}] -> no writing");
             return;
         }
         throw new InvalidBusRoutingException($"Error writing [{data:X2}] to [{address:X4}] in Ram.");
@@ -50,7 +50,7 @@ public class Ram : IMemoryMappedDevice
         // Read WRAM
         if (address >= 0xC000 && address <= 0xDFFF)
         {
-            Console.WriteLine($"Reading WRAM [{address:X4}]");
+            //Console.WriteLine($"Reading WRAM [{address:X4}]");
             return Wram[address - 0xC000];
         }
         // Echo RAM
@@ -61,13 +61,13 @@ public class Ram : IMemoryMappedDevice
         // HRAM
         if (address >= 0xFF80 && address <= 0xFFFE)
         {
-            Console.WriteLine($"Reading HRAM [{address:X4}]");
+            //Console.WriteLine($"Reading HRAM [{address:X4}]");
             return Hram[address - 0xFF80];
         }
         // Prohibited mem
         if (address >= 0xFEA0 && address <= 0xFEFF)
         {
-            Console.WriteLine($"Reading from PROHIBITED MEMORY [{address:X4}] -> sending garbage");
+            //Console.WriteLine($"Reading from PROHIBITED MEMORY [{address:X4}] -> sending garbage");
             return 0xFF;
         }
         throw new InvalidBusRoutingException($"Error reading [{address:X4}] in Ram.");

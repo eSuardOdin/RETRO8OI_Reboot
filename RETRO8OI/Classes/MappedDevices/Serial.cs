@@ -10,11 +10,11 @@ public class Serial : IMemoryMappedDevice
         
         if (address == 0xFF01)
         {
-            Console.WriteLine($"Writing [{data:X2}] to Serial transfer data [{address:X4}]");
+            //Console.WriteLine($"Writing [{data:X2}] to Serial transfer data [{address:X4}]");
             SB = data;
             return;
         }
-        Console.WriteLine($"Writing [{data:X2}] to Serial transfer control [{address:X4}]");
+        //Console.WriteLine($"Writing [{data:X2}] to Serial transfer control [{address:X4}]");
         SC = data;
     }
 
@@ -22,10 +22,10 @@ public class Serial : IMemoryMappedDevice
     {
         if (address == 0xFF01)
         {
-            Console.WriteLine($"Reading Serial transfer data [{address:X4}]");
+            //Console.WriteLine($"Reading Serial transfer data [{address:X4}]");
             return SB;    
         }
-        Console.WriteLine($"Reading Serial transfer control [{address:X4}]");
+        //Console.WriteLine($"Reading Serial transfer control [{address:X4}]");
         return SC;
     }
 

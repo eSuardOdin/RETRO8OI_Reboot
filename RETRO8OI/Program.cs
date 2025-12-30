@@ -15,16 +15,9 @@ else
 {
     try
     {
-        Cartridge cartridge = new Cartridge(args[0]);
-        Gameboy gameboy = new(args[0]);
-        int cycles;
-        for(int i = 0; i < 0x10000; i++)
-        {
-            cycles = gameboy.Cpu.Execute();
-            gameboy.Ppu.Update(cycles);
-            //gameboy.Cpu.PrintRegisters();
-            //gameboy.Display.DrawVram();
-        }
+        Gameboy gameboy = new();
+        gameboy.LoadCart(args[0]);
+        gameboy.Run();
     }
     catch (Exception e)
     {

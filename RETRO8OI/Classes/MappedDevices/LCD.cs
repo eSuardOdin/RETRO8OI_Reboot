@@ -24,35 +24,35 @@ public class LCD : IMemoryMappedDevice
         switch (address)
         {
             case 0xFF40:
-                Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
                 LCDC = data;
                 return;
             case 0xFF44:
-                Console.WriteLine($"Writing [{data:X2}] to LY [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to LY [{address:X4}]");
                 LY = data;
                 return;
             case 0xFF45:
-                Console.WriteLine($"Writing [{data:X2}] to LYC [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to LYC [{address:X4}]");
                 LYC = data;
                 return;
             case 0xFF41:
-                Console.WriteLine($"Writing [{data:X2}] to LCD STAT [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to LCD STAT [{address:X4}]");
                 STAT = data;
                 return;
             case 0xFF42:
-                Console.WriteLine($"Writing [{data:X2}] to SCY [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to SCY [{address:X4}]");
                 SCY = data;
                 return;
             case 0xFF43:
-                Console.WriteLine($"Writing [{data:X2}] to SCX [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to SCX [{address:X4}]");
                 SCX = data;
                 return;
             case 0xFF4A:
-                Console.WriteLine($"Writing [{data:X2}] to WY [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to WY [{address:X4}]");
                 WY = data;
                 return;
             case 0xFF4B:
-                Console.WriteLine($"Writing [{data:X2}] to WX [{address:X4}]");
+                //Console.WriteLine($"Writing [{data:X2}] to WX [{address:X4}]");
                 WX = data;
                 return;
         }
@@ -66,28 +66,28 @@ public class LCD : IMemoryMappedDevice
         switch (address)
         {
             case 0xFF40:
-                Console.WriteLine($"Reading LCDC [{address:X4}]");
+                //Console.WriteLine($"Reading LCDC [{address:X4}]");
                 return LCDC;
             case 0xFF44:
-                Console.WriteLine($"Reading LY [{address:X4}]");
+                //Console.WriteLine($"Reading LY [{address:X4}]");
                 return LY;
             case 0xFF45:
-                Console.WriteLine($"Reading LYC [{address:X4}]");
+                //Console.WriteLine($"Reading LYC [{address:X4}]");
                 return LYC;
             case 0xFF41:
-                Console.WriteLine($"Reading LCD STAT [{address:X4}]");
+                //Console.WriteLine($"Reading LCD STAT [{address:X4}]");
                 return STAT;
             case 0xFF42:
-                Console.WriteLine($"Reading SCY [{address:X4}]");
+                //Console.WriteLine($"Reading SCY [{address:X4}]");
                 return SCY;
             case 0xFF43:
-                Console.WriteLine($"Reading SCX [{address:X4}]");
+                //Console.WriteLine($"Reading SCX [{address:X4}]");
                 return SCX;
             case 0xFF4A:
-                Console.WriteLine($"Reading WY [{address:X4}]");
+                //Console.WriteLine($"Reading WY [{address:X4}]");
                 return WY;
             case 0xFF4B:
-                Console.WriteLine($"Reading WX [{address:X4}]");
+                //Console.WriteLine($"Reading WX [{address:X4}]");
                 return WX;
         }
 

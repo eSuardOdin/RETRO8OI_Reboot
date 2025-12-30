@@ -35,7 +35,12 @@ public class Timer : IMemoryMappedDevice
     {
         Bus = bus;
     }
-    
+
+    public void UpdateTimers(int cycles)
+    {
+        UpdateTima(cycles);
+        UpdateDiv(cycles);
+    }
     
     /// <summary>
     /// DIV register is incremented at 16384Hz, each 256 M-Cycles
@@ -46,7 +51,7 @@ public class Timer : IMemoryMappedDevice
         DivTicks += cycles;
         if (DivTicks >= DIV_M_CYCLES)
         {
-            Console.WriteLine($"DIV register is 0x{DIV:X2}.");
+            //Console.WriteLine($"DIV register incremented, now 0x{DIV:X2}.");
             DIV++;
             DivTicks -= DIV_M_CYCLES;
         }
@@ -60,14 +65,17 @@ public class Timer : IMemoryMappedDevice
             TimaTicks += cycles;
             if (TimaTicks >= TIMA_M_CYCLES)
             {
+                
                 if (TIMA == 0xFF)
                 {
                     TIMA = TMA;
+                    //Console.WriteLine($"TIMA Overflowed, now 0x{TIMA:X2}.");
                     // Request TIMER interrupt
                     Bus.Write(0xFF0F, 0x3);
                 }
                 else
                 {
+                    //Console.WriteLine($"TIMA Incremented, now 0x{TIMA:X2}.");
                     TIMA++;
                 }
             }
@@ -80,15 +88,18 @@ public class Timer : IMemoryMappedDevice
         switch  (address)
         {
             case 0xFF04:
+                //Console.WriteLine($"Writing in DIV, reset DIV.");
                 DIV = 0;
                 break;
             case 0xFF05:
                 break;
             case 0xFF06:
                 TMA = data;
+                //Console.WriteLine($"Writing in TMA, TMA now equal 0x{TMA:X2}.");
                 break;
             case 0xFF07:
                 TAC = data;
+                //Console.WriteLine($"Writing in TAC, TAC now equal 0x{TMA:X2}.");
                 break;
         }
     }

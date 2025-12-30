@@ -305,33 +305,33 @@ public class Cartridge : IMemoryMappedDevice
     private void PrintCartInfos()
     {
         // File name
-        Console.WriteLine($"Loaded cart:{Filename}");
+        //Console.WriteLine($"Loaded cart:{Filename}");
         // Title
-        Console.WriteLine($"Title:{System.Text.Encoding.ASCII.GetString(_header.Title)}");
+        //Console.WriteLine($"Title:{System.Text.Encoding.ASCII.GetString(_header.Title)}");
         // Licensee code
         var lic = _header.OldLicCode == 0x33 ? HeaderConstants.GetNewLicenseeName(_header.NewLicCode) : HeaderConstants.GetOldLicenseeName(_header.OldLicCode);
-        Console.WriteLine($"Licensee code: {lic}");
+        //Console.WriteLine($"Licensee code: {lic}");
         // Cart type
-        Console.WriteLine($"Type: {HeaderConstants.GetCartType(_header.Type)}");
+        //Console.WriteLine($"Type: {HeaderConstants.GetCartType(_header.Type)}");
         
         // Sizes
-        Console.WriteLine($"Cart ROM size = {32*1024*(1<<_header.RomSize)} ({_header.RomSize.ToString("X2")})");
+        //Console.WriteLine($"Cart ROM size = {32*1024*(1<<_header.RomSize)} ({_header.RomSize.ToString("X2")})");
         switch (_header.RamSize)
         {
             case 0x02:
-                Console.WriteLine($"Cart RAM size = 8 KiB");
+                //Console.WriteLine($"Cart RAM size = 8 KiB");
                 break;
             case 0x03:
-                Console.WriteLine($"Cart RAM size = 32 KiB");
+                //Console.WriteLine($"Cart RAM size = 32 KiB");
                 break;
             case 0x04:
-                Console.WriteLine($"Cart RAM size = 128 KiB");
+                //Console.WriteLine($"Cart RAM size = 128 KiB");
                 break;
             case 0x05:
-                Console.WriteLine($"Cart RAM size = 64 KiB");
+                //Console.WriteLine($"Cart RAM size = 64 KiB");
                 break;
             default:
-                Console.WriteLine($"Cart RAM size = 0 KiB");
+                //Console.WriteLine($"Cart RAM size = 0 KiB");
                 break;
         }
     }
