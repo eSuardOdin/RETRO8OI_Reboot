@@ -1,13 +1,23 @@
+using SDL3;
+
 namespace RETRO8OI;
 
 public class Ppu : IMemoryMappedDevice
 {
     public MemoryBus Bus { get; private set; }
 
+    private byte _mode;
     public byte Mode
     {
-        get => (byte)(STAT & 0x3);
-        set => STAT = (byte)((STAT & 0xFC) | value);
+        get =>  _mode;
+        set 
+        {
+            if (_mode != value)
+            {
+                _mode = value;
+                CheckStatInterrupt();
+            }
+        }
     }
     /// <summary>
     /// Responds to 0xFE00 - 0xFE9F<br/>
@@ -16,27 +26,35 @@ public class Ppu : IMemoryMappedDevice
     /// </summary>
     private byte[] OAM;
     public byte[] Vram { get; private set; }
-    private byte OamDma = 0;
-    private byte LCDC = 0;
-    private byte LY;
-    private byte LYC;
-    private byte STAT = 0;
+    private byte OamDma = 0xFF;
+    private byte LCDC = 0x91;
+    private byte LY = 0;
+    private byte LYC = 0;
+    private byte STAT = 0x85;
     private byte SCY = 0;
     private byte SCX = 0;
     private byte WY = 0;
     private byte WX = 0;
-    private byte BGP = 0;
+    private byte BGP = 0xFC;
     private byte OBP0 = 0;
     private byte OBP1 = 0;
     private int VerticalCyclesCount = 0;
-    
+    private bool StatIntLine = false;
+
+    // To be handled by CPU
+    public event EventHandler OamDmaEvent;
     
     public Ppu(MemoryBus bus)
     {
         Bus = bus;
         Vram = new byte[0x2000];
         OAM = new byte[0xA0];
-        Mode = 0;
+        _mode = 0;
+    }
+
+    protected virtual void OnOamDmaEvent()
+    {
+        OamDmaEvent?.Invoke(this, EventArgs.Empty);
     }
     
     public void Write(ushort address, byte data)
@@ -60,19 +78,26 @@ public class Ppu : IMemoryMappedDevice
         {
             switch (address)
             {
+                case 0xFF46:
+                    // Naive DMA transfer ?
+                    OnOamDmaEvent();
+                    ushort addr = (ushort)(data << 8);
+                    for (byte i = 0; i < OAM.Length; i++) {
+                        OAM[i] = Bus.Read((ushort)(addr + i));
+                    }
+                    Console.WriteLine($"OAM Transfer done from 0x{addr:X4} to 0x{(addr+OAM.Length):X4}");
+                    return;
                 case 0xFF40:
                     //Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
                     LCDC = data;
                     return;
                 case 0xFF44:
-                    //Console.WriteLine($"Writing [{data:X2}] to LY [{address:X4}]");
-                    LY = data;
-                    if((STAT & 0x40 ) == 0x40 && LY == LYC) Bus.Write(0xFF0F, 0x2); // STAT Interrupt if LY == LYC
+                    // LY IS READ ONLY
                     return;
                 case 0xFF45:
                     //Console.WriteLine($"Writing [{data:X2}] to LYC [{address:X4}]");
                     LYC = data;
-                    if((STAT & 0x40 ) == 0x40 && LY == LYC) Bus.Write(0xFF0F, 0x2); // STAT Interrupt if LY == LYC
+                    CheckLyLyc();
                     return;
                 case 0xFF41:
                     //Console.WriteLine($"Writing [{data:X2}] to LCD STAT [{address:X4}]");
@@ -184,13 +209,15 @@ public class Ppu : IMemoryMappedDevice
                 case 0: // HBlank
                     if (VerticalCyclesCount >= 204)
                     {
+                        // Increment LY and check if it's equal LYC
                         LY++;
-                        if((STAT & 0x40 ) == 0x40 && LY == LYC) Bus.Write(0xFF0F, 0x2); // STAT Interrupt if LY == LYC
-                        if (LY > 144)
+                        CheckLyLyc();
+                        VerticalCyclesCount -= 204;
+                        if (LY >= 144)
                         {
                             Mode = 0x1; // Switch to VBlank
-                            VerticalCyclesCount -= 204;
-                            // VBlankInterruptFlag()
+                            // Write VBlank interrupt request flag
+                            Bus.Write(0xFF0F, 0x1);
                         }
                         else
                         {
@@ -202,17 +229,48 @@ public class Ppu : IMemoryMappedDevice
                     if (VerticalCyclesCount >= 456)
                     {
                         LY++;
+                        CheckLyLyc();
                         VerticalCyclesCount -= 456;
                         if (LY >= 153)
                         {
-                            LY -= 153;
+                            LY = 0;
                             Mode = 0x2; // Switch to OAM Scan
-                            // Write VBlank interrupt request flag
-                            Bus.Write(0xFF0F, 0x1);
                         }
                     }
                     break;
             }  
+        }
+    }
+
+    private void CheckLyLyc()
+    {
+        if (LY == LYC)
+        {
+            STAT |= 0x4;
+            CheckStatInterrupt();   // Check for bit 6 LYC int select
+            return;
+        }
+        // If it's not equal anymore
+        if ((STAT & 0x4) == 0x4)
+        {
+            STAT &= 0b11111011;
+        }
+    }
+
+    private void CheckStatInterrupt()
+    {
+        // To check later if stat line was not already high
+        bool oldStatLine = StatIntLine;
+        StatIntLine = (
+            Mode == 0 && ((STAT & 0x8) == 0x8) ||
+            Mode == 1 && ((STAT & 0x10) == 0x10) ||
+            Mode == 2 && ((STAT & 0x20) == 0x20) ||
+            ((STAT & 0x4) == 0x4) && ((STAT & 0x40) == 0x40)
+        );
+        // If rising edge on stat interrupt
+        if (StatIntLine && !oldStatLine)
+        {
+            Bus.Write(0xFF0F, 0x2);
         }
     }
 }

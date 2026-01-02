@@ -34,6 +34,10 @@ public class Timer : IMemoryMappedDevice
     public Timer(MemoryBus bus)
     {
         Bus = bus;
+        DIV = 0xAB;
+        TIMA = 0;
+        TMA = 0;
+        TAC = 0xF8;
     }
 
     public void UpdateTimers(int cycles)

@@ -8,12 +8,11 @@ public class Gameboy
 {
     private const int CPU_FREQ = 4194304; // Hz, so 4.19 MHz
     private const double FRAME_FREQ = 59.73; // Hz
-    private const double TARGET_FRAMETIME_MS = 1000.0 / FRAME_FREQ;
     private int CYCLES_PER_FRAME = (int)(CPU_FREQ / FRAME_FREQ);
     
-    private const int FREQ_MICROSEC  = 1000000; // 1 sec
     
     private bool _runningGame = false;
+    private bool _isOamDMA = false;
     public int Cycles { get; set; }
     public MemoryBus Bus { get; private set; }
     public Ram Ram { get; private set; }
@@ -40,6 +39,7 @@ public class Gameboy
         //Oam = new OAM();
         Timer = new Timer(Bus);
         Ppu = new Ppu(Bus);
+        Ppu.OamDmaEvent += SetOamDma;
         Apu = new Apu();
         InterruptRegisters = new InterruptRegisters();
         Cartridge = null;
@@ -69,6 +69,7 @@ public class Gameboy
         Bus.Map(Cartridge);
     }
     
+    private void SetOamDma(Object? sender, EventArgs e) => _isOamDMA = true;
     
     public void Run()
     {
@@ -80,7 +81,6 @@ public class Gameboy
         
         // Get timespan after instructions with stopwatch
         Stopwatch sw = new();
-        Stopwatch debug_watch = new();
         // CPU Cycles after executing an instruction
         int cycles = 0;
         int frame_cycles = 0;
@@ -89,58 +89,42 @@ public class Gameboy
         
         var frameTime = TimeSpan.FromSeconds(1.0/FRAME_FREQ);
         sw.Start();
-        debug_watch.Start();
+        
         while (_runningGame)
         {
-
-            /* Works as seconds
-             
-            while (frame_cycles < CYCLES_PER_FRAME)
-            {
-                cycles = Cpu.Execute();
-                frame_cycles += cycles;
-                Ppu.Update(cycles);
-                Timer.UpdateTimers(cycles);
-            }
-
-            frames++;
-            frame_cycles -= CYCLES_PER_FRAME;
-            if (frames >= FRAME_FREQ)
-            {
-                Console.WriteLine("\n\n\n\n\n\n\n\n\n\n");
-                Console.WriteLine($"{frames} frames in {sw.ElapsedMilliseconds} ms");
-                frames -= FRAME_FREQ;
-                while (sw.ElapsedMilliseconds < 1000.0)
-                {}
-                sw.Restart();
-            }
-            
-            */
-            
             // Get true start
             var execStart = sw.Elapsed;
             
             // Execute the number of M-Cycles in a frame
             while (frame_cycles < CYCLES_PER_FRAME)
             {
-                cycles = Cpu.Execute();
+                if (_isOamDMA)
+                {
+                    cycles = 160;
+                    _isOamDMA = false;
+                }
+                else
+                {
+                    cycles = Cpu.Execute();
+                }
                 frame_cycles += cycles;
-                Ppu.Update(cycles);
+                //Ppu.Update(cycles);
                 Timer.UpdateTimers(cycles);
             }
+            //Console.WriteLine($"-- Frame lasted {(sw.Elapsed - execStart).TotalMilliseconds:F2} ms ({1000.0 / FRAME_FREQ})");
+            
             // Frame number updated and remaining cycles saved for next frame
             frames++;
             frame_cycles -= CYCLES_PER_FRAME;
-            //Console.WriteLine($"Frame n°{frames} in {(sw.Elapsed - execStart).TotalMilliseconds:F2} ms");
             
             // Wait for frame time
             var elapsed = sw.Elapsed - execStart;
             var remaining = frameTime - elapsed;
             if (remaining > TimeSpan.Zero)
             {
-                if (remaining.TotalMilliseconds > 2.0)
+                if (remaining.TotalMilliseconds > 4.0)
                 {
-                    Thread.Sleep((int) (remaining.TotalMilliseconds - 1.0));
+                    Thread.Sleep((int) (remaining.TotalMilliseconds - 2.0));
                 }
                 while((sw.Elapsed - execStart) < frameTime) {}
             }
