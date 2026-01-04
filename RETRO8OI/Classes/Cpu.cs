@@ -19,6 +19,8 @@ public class Cpu
         get => _f;
         set => _f = (byte)(value & 0xF0);
     }
+
+    private int VBlanks = 0;
     private byte A, B, C, D, E, H, L; 
     private ushort AF{ get { return (ushort)(A << 8 | F); } set { A = (byte)(value >> 8); F = (byte)(value & 0xFF); } }
     private ushort BC { get { return (ushort)(B << 8 | C); } set { B = (byte)(value >> 8); C = (byte)(value & 0xFF); } }
@@ -26,7 +28,8 @@ public class Cpu
     private ushort HL { get { return (ushort)(H << 8 | L); } set { H = (byte)(value >> 8); L = (byte)(value & 0xFF); } }
     private ushort SP;
     public ushort PC { get; private set; }
-    
+
+    private bool IsOamDma;
     // Flags
     private bool FlagZ 
     { 
@@ -52,10 +55,12 @@ public class Cpu
     private bool IME;
     public bool IMEEnable;
     private bool Halted;
+    private bool HaltBug;
     
     // Constructor
     public Cpu(MemoryBus bus)
     {
+        IsOamDma = false;
         Bus = bus;
         // Boot ROM exit status
         AF = 0x01B0;
@@ -68,13 +73,28 @@ public class Cpu
         IME = false;
         IMEEnable = false;
         Halted = false;
+        HaltBug = false;
     }
 
 
     public int Execute()
     {
+        // Enable IME if EI on previous instruction
+        if (IMEEnable)
+        {
+            IME = true;
+            IMEEnable = false;
+        }
         // Get the current opcode
         byte opcode = Bus.Read(PC++);
+        // If halt bug
+        if (HaltBug)
+        {
+            PC--;
+            HaltBug = false;
+        }
+        
+        
         int cycles = 0;
         //Console.WriteLine($"[{PC-1:X2}] => {opcode:X2}");
         // --- Decode ---
@@ -1293,7 +1313,24 @@ public class Cpu
     
     private void HALT()
     {
-        // TODO (See cycle accurate gameboy emulator)
+        if (IME)
+        {
+            Halted = true;
+            PC--;   // To stay on HALT instruction
+        }
+        else
+        {
+            byte IE = Bus.Read(0xFFFF);
+            byte IF = Bus.Read(0xFF0F);
+            if ((IE & IF & (byte)0x1F) != 0)
+            {
+                HaltBug = true;
+            }
+            else
+            {
+                Halted = true;
+            }
+        }
     }
     
     
@@ -2342,6 +2379,33 @@ public class Cpu
 
 
 
+    /// <summary>
+    /// This one is just to prevent write to forbidden mem in case OAM DMA is
+    /// currently happening
+    /// </summary>
+    /// <param name="address"></param>
+    /// <param name="data"></param>
+    private void WriteBus(ushort address, byte data)
+    {
+        if (!IsOamDma || (address >= 0xFF80 && address <= 0xFFFE))
+        {
+            Bus.Write(address, data);
+        }
+    }
+
+    /// <summary>
+    /// Just to check if bus is busy by OAM DMA before reading
+    /// </summary>
+    /// <param name="address"></param>
+    /// <returns></returns>
+    private byte ReadBus(ushort address) =>
+        !IsOamDma || (address >= 0xFF80 && address <= 0xFFFE) ? Bus.Read(address) : (byte)0xFF;
+
+    public void SetCpuOamDma(bool isOamDma)
+    {
+        IsOamDma = isOamDma;
+    }
+    
     public void PrintRegisters()
     {
         //Console.WriteLine("=== CPU Registers ===");
@@ -2353,6 +2417,75 @@ public class Cpu
         //Console.WriteLine($"PC: 0x{PC:X4}");
         //Console.WriteLine($"Flags: Z:{(F >> 7 & 1)} N:{(F >> 6 & 1)} H:{(F >> 5 & 1)} C:{(F >> 4 & 1)}");
         //Console.WriteLine("====================");
+    }
+
+    public int HandleInterrupts()
+    {
+        // Compare interrupts flags and enables
+        byte IE = Bus.Read(0xFFFF);
+        byte IF = Bus.Read(0xFF0F);
+
+        for (int b = 0; b < 5; b++)
+        {
+            if(((IE & (1 << b)) == (1 << b) && (IF & (1 << b)) == (1 << b)))
+            {
+                return ExecInterrupt(b);
+            }
+        }
+
+        return 0;
+    }
+
+
+    private int ExecInterrupt(int b)
+    {
+        int cycles = 0;
+        /*// Debug
+        String intStr;
+        switch (b)
+        {
+            case 0 :
+                intStr = "VBlank";
+                break;
+            case 1 :
+                intStr = "LCD";
+                break;
+            case 2 :
+                intStr = "Timer";
+                break;
+            case 3 :
+                intStr = "Serial";
+                break;
+            case 4 :
+                intStr = "Joypad";
+                break;
+            default:
+                intStr = "WTF";
+                break;
+        }
+        Console.WriteLine($"Executing {intStr} interrupt.");*/
+        if (Halted)
+        {
+            Halted = false;
+            PC++;
+            cycles += 4;
+        }
+        if (IME)
+        {
+            
+            // Disable bit of interrupt flag
+            byte IF = Bus.Read(0xFF0F);
+            IF &= (byte)~(1 << b);
+            Bus.Write(0xFF0F, IF);
+            // Disable IME
+            IME = false;
+            // Get return from interrupt vector value 
+            PUSH(PC);
+            PC = (ushort)(0x40 + (b * 8));
+            //Console.WriteLine($"IME enabled, jumping to 0x{PC:X4}.");
+            cycles += 16;
+        }
+        return cycles;
     }
     
 }

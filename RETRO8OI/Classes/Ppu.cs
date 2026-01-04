@@ -26,7 +26,8 @@ public class Ppu : IMemoryMappedDevice
     /// </summary>
     private byte[] OAM;
     public byte[] Vram { get; private set; }
-    private byte OamDma = 0xFF;
+    private ushort OamDmaAddr = 0;
+    private byte OamDmaCyclesDone = 0;
     private byte LCDC = 0x91;
     private byte LY = 0;
     private byte LYC = 0;
@@ -42,7 +43,7 @@ public class Ppu : IMemoryMappedDevice
     private bool StatIntLine = false;
 
     // To be handled by CPU
-    public event EventHandler OamDmaEvent;
+    public event EventHandler<bool> OamDmaEvent;
     
     public Ppu(MemoryBus bus)
     {
@@ -52,9 +53,9 @@ public class Ppu : IMemoryMappedDevice
         _mode = 0;
     }
 
-    protected virtual void OnOamDmaEvent()
+    protected virtual void OnOamDmaEvent(bool isStart)
     {
-        OamDmaEvent?.Invoke(this, EventArgs.Empty);
+        OamDmaEvent?.Invoke(this, isStart);
     }
     
     public void Write(ushort address, byte data)
@@ -79,13 +80,10 @@ public class Ppu : IMemoryMappedDevice
             switch (address)
             {
                 case 0xFF46:
-                    // Naive DMA transfer ?
-                    OnOamDmaEvent();
-                    ushort addr = (ushort)(data << 8);
-                    for (byte i = 0; i < OAM.Length; i++) {
-                        OAM[i] = Bus.Read((ushort)(addr + i));
-                    }
-                    Console.WriteLine($"OAM Transfer done from 0x{addr:X4} to 0x{(addr+OAM.Length):X4}");
+                    // Prepare OAM DMA
+                    OnOamDmaEvent(true);
+                    OamDmaAddr = (ushort)(data << 8);
+                    OamDmaCyclesDone = 0;
                     return;
                 case 0xFF40:
                     //Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
@@ -233,14 +231,40 @@ public class Ppu : IMemoryMappedDevice
                         VerticalCyclesCount -= 456;
                         if (LY >= 153)
                         {
-                            LY = 0;
                             Mode = 0x2; // Switch to OAM Scan
+                            LY = 0;
                         }
                     }
                     break;
             }  
         }
+        else { //LCD Disabled
+            VerticalCyclesCount = 0;
+            LY = 0;
+            STAT = (byte)(STAT & ~0x3);
+        }
     }
+
+
+    public void OamDmaUpdate(int cycles)
+    {
+        for (int i = 0; i < cycles; i++)
+        {
+            // Copy a byte by CPU cycle and increment values
+            OAM[OamDmaCyclesDone] = Bus.Read(OamDmaAddr);
+            OamDmaCyclesDone++;
+            OamDmaAddr++;
+            // Check if OAM DMA done
+            if (OamDmaCyclesDone == OAM.Length - 1)
+            {
+                // Event to signal OAM DMA ended
+                OnOamDmaEvent(false);
+                return;
+            }
+        }
+    }
+    
+    
 
     private void CheckLyLyc()
     {

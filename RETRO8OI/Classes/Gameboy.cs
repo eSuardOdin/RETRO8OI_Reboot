@@ -13,6 +13,7 @@ public class Gameboy
     
     private bool _runningGame = false;
     private bool _isOamDMA = false;
+    private int _oamDmaCycles = 0;
     public int Cycles { get; set; }
     public MemoryBus Bus { get; private set; }
     public Ram Ram { get; private set; }
@@ -28,7 +29,7 @@ public class Gameboy
     public Joypad Joypad { get; private set; }
     public Serial Serial { get; private set; }
     
-    
+    int updateCount = 0;
 
     public Gameboy()
     {
@@ -68,8 +69,12 @@ public class Gameboy
         if(Cartridge == null) return;
         Bus.Map(Cartridge);
     }
-    
-    private void SetOamDma(Object? sender, EventArgs e) => _isOamDMA = true;
+
+    private void SetOamDma(Object? sender, bool isDmaOn)
+    {
+        _isOamDMA = isDmaOn;
+        Cpu.SetCpuOamDma(isDmaOn);
+    }
     
     public void Run()
     {
@@ -95,21 +100,24 @@ public class Gameboy
             // Get true start
             var execStart = sw.Elapsed;
             
-            // Execute the number of M-Cycles in a frame
+            // Execute the number of M-Cycles in a frame (MAIN EXEC LOOP)
             while (frame_cycles < CYCLES_PER_FRAME)
             {
+                cycles = Cpu.Execute();
+                frame_cycles += cycles; 
+                Ppu.Update(cycles);
+                // ✅ Debug : compter les appels à Update
+                updateCount++;
+                if (updateCount % 1000 == 0)
+                    Console.WriteLine($"PPU.Update appelé {updateCount} fois");
+                
+                
                 if (_isOamDMA)
-                {
-                    cycles = 160;
-                    _isOamDMA = false;
+                {   
+                    Ppu.OamDmaUpdate(cycles);
                 }
-                else
-                {
-                    cycles = Cpu.Execute();
-                }
-                frame_cycles += cycles;
-                //Ppu.Update(cycles);
                 Timer.UpdateTimers(cycles);
+                Cpu.HandleInterrupts();
             }
             //Console.WriteLine($"-- Frame lasted {(sw.Elapsed - execStart).TotalMilliseconds:F2} ms ({1000.0 / FRAME_FREQ})");
             
@@ -128,8 +136,6 @@ public class Gameboy
                 }
                 while((sw.Elapsed - execStart) < frameTime) {}
             }
-            
-            //Console.WriteLine($"Waited until {(sw.Elapsed - execStart).TotalMilliseconds:F2} ms ({1000.0 / FRAME_FREQ})");
             
             
             if (frames >= FRAME_FREQ)
