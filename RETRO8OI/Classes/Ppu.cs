@@ -13,11 +13,11 @@ public class Ppu : IMemoryMappedDevice
         get => _mode;
         set
         {
-            if (_mode != value)  // ✅ Vérifier le changement
+            if (_mode != value)
             {
                 _mode = value;
             
-                // Mettre à jour STAT
+                // STAT Update
                 STAT &= 0xFC;
                 STAT |= (byte)(value & 0x3);
             
@@ -35,6 +35,47 @@ public class Ppu : IMemoryMappedDevice
     private ushort OamDmaAddr = 0;
     private byte OamDmaCyclesDone = 0;
     private byte LCDC = 0x91;
+
+    private bool IsLcdPpuEnabled
+    {
+        get => (LCDC & 0x80) == 0x80;
+    }
+    private bool IsWindowEnabled    // Bit 5 of LCDC
+    {
+        get
+        {
+            return (LCDC & 0x20) == 0x20; // Beware, need to take bit 0 into account too
+        } 
+    }
+    private bool IsBackgroundAndWindowEnabled
+    {
+        get
+        {
+            return (LCDC & 0x1) == 0x1;
+        }
+    }
+
+    private ushort TilemapAddress
+    {
+        get => (LCDC & 0x40) == 0x40 ? (ushort)0x9800 : (ushort)0x9C00;
+    }
+
+    private ushort BGWindowTileDataArea
+    {
+        get => (LCDC & 0x10) == 0x10 ? (ushort)0x8800 : (ushort)0x8000;
+    }
+
+    private bool IsDoubleObjWidth
+    {
+        get => (LCDC & 0x4) == 0x4;
+    }
+
+    private bool IsObjEnabled
+    {
+        get => (LCDC & 0x2) == 0x2;
+    }
+    
+    
     private byte LY = 0;
     private byte LYC = 0;
     private byte STAT = 0x85;
@@ -73,138 +114,6 @@ public class Ppu : IMemoryMappedDevice
         ModeSwitchEvent?.Invoke(this, mode);
     }
     
-    public void Write(ushort address, byte data)
-    {
-        // Write VRAM only if mode != 3
-        if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
-        {
-            //Console.WriteLine($"Writing [{data:X2}] to VRAM [{address:X4}]");
-            Vram[address - 0x8000] =  data;
-            return;
-        }
-        // Write to OAM only if mode 0 or 1 (VBlank, HBlank)
-        if (address >= 0xFE00 && address <= 0xFE9F && Mode < 2)
-        {
-            //Console.WriteLine($"Writing [{data:X2}] to OAM [{address:X4}]");
-            OAM[address - 0xFE00] =  data;
-            return;
-        }
-        // Write LCD stuff
-        if (address >= 0xFF40 && address <= 0xFF4B)
-        {
-            switch (address)
-            {
-                case 0xFF46:
-                    // Prepare OAM DMA
-                    OnOamDmaEvent(true);
-                    OamDmaAddr = (ushort)(data << 8);
-                    OamDmaCyclesDone = 0;
-                    return;
-                case 0xFF47:    // Backgroung palette
-                    BGP = data;
-                    return;
-                case 0xFF48:    // OBP 0 palette
-                    OBP0 = data;
-                    return;
-                case 0xFF49:    // OBP 1 palette
-                    OBP1 = data;
-                    return;
-                case 0xFF40:
-                    //Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
-                    if ((data & 0x80) != 0x80)
-                    {
-                        Console.WriteLine("LCD DISABLED");
-                    }
-                    LCDC = data;
-                    return;
-                case 0xFF44:
-                    // LY IS READ ONLY
-                    return;
-                case 0xFF45:
-                    //Console.WriteLine($"Writing [{data:X2}] to LYC [{address:X4}]");
-                    LYC = data;
-                    CheckLyLyc();
-                    return;
-                case 0xFF41:
-                    //Console.WriteLine($"Writing [{data:X2}] to LCD STAT [{address:X4}]");
-                    STAT = data;
-                    return;
-                case 0xFF42:
-                    //Console.WriteLine($"Writing [{data:X2}] to SCY [{address:X4}]");
-                    SCY = data;
-                    return;
-                case 0xFF43:
-                    //Console.WriteLine($"Writing [{data:X2}] to SCX [{address:X4}]");
-                    SCX = data;
-                    return;
-                case 0xFF4A:
-                    //Console.WriteLine($"Writing [{data:X2}] to WY [{address:X4}]");
-                    WY = data;
-                    return;
-                case 0xFF4B:
-                    //Console.WriteLine($"Writing [{data:X2}] to WX [{address:X4}]");
-                    WX = data;
-                    return;
-            }
-        }
-    }
-
-    public byte Read(ushort address)
-    {
-        // Read VRAM
-        if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
-        {
-            //Console.WriteLine($"Reading VRAM [{address:X4}]");
-            return Vram[address - 0x8000];
-        }
-        // Read OAM
-        if (address >= 0xFE00 && address <= 0xFE9F && Mode < 2)
-        {
-            //Console.WriteLine($"Reading OAM [{address:X4}]");
-            return OAM[address - 0xFE00];
-        }
-        // Read LCD stuff
-        if (address >= 0xFF40 && address <= 0xFF4B)
-        {
-            switch (address)
-            {
-                case 0xFF40:
-                    //Console.WriteLine($"Reading LCDC [{address:X4}]");
-                    return LCDC;
-                case 0xFF44:
-                    //Console.WriteLine($"Reading LY [{address:X4}]");
-                    return LY;
-                case 0xFF45:
-                    //Console.WriteLine($"Reading LYC [{address:X4}]");
-                    return LYC;
-                case 0xFF41:
-                    //Console.WriteLine($"Reading LCD STAT [{address:X4}]");
-                    return STAT;
-                case 0xFF42:
-                    //Console.WriteLine($"Reading SCY [{address:X4}]");
-                    return SCY;
-                case 0xFF43:
-                    //Console.WriteLine($"Reading SCX [{address:X4}]");
-                    return SCX;
-                case 0xFF4A:
-                    //Console.WriteLine($"Reading WY [{address:X4}]");
-                    return WY;
-                case 0xFF4B:
-                    //Console.WriteLine($"Reading WX [{address:X4}]");
-                    return WX;
-            }
-        }
-        return 0xFF;
-    }
-
-    public bool Accept(ushort address)
-    {
-        return (address >= 0x8000 && address <= 0x9FFF) || 
-               (address >= 0xFE00 && address <= 0xFE9F) ||
-               (address >= 0xFF40 && address <= 0xFF4B);
-    }
-
-
 
 
 
@@ -212,7 +121,7 @@ public class Ppu : IMemoryMappedDevice
     {
         VerticalCyclesCount += cycles;
         // Check if LCD is enabled
-        if ((LCDC & 0x80) == 0x80)
+        if (IsLcdPpuEnabled)
         {
             //Console.WriteLine($"LCD Enabled: \n\tENTERING: Mode {Mode}, dots to consume {cycles}");
             switch (Mode) // Switch mode
@@ -335,4 +244,132 @@ public class Ppu : IMemoryMappedDevice
             Bus.Write(0xFF0F, 0x2);
         }
     }
+    
+    
+    
+    
+    
+    // MEMORY MAPPED STUFF
+        public void Write(ushort address, byte data)
+    {
+        // Write VRAM only if mode != 3
+        if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
+        {
+            //Console.WriteLine($"Writing [{data:X2}] to VRAM [{address:X4}]");
+            Vram[address - 0x8000] =  data;
+            return;
+        }
+        // Write to OAM only if mode 0 or 1 (VBlank, HBlank)
+        if (address >= 0xFE00 && address <= 0xFE9F && Mode < 2)
+        {
+            //Console.WriteLine($"Writing [{data:X2}] to OAM [{address:X4}]");
+            OAM[address - 0xFE00] =  data;
+            return;
+        }
+        // Write LCD stuff
+        if (address >= 0xFF40 && address <= 0xFF4B)
+        {
+            switch (address)
+            {
+                case 0xFF46:    // OAM DMA
+                    // Prepare OAM DMA
+                    OnOamDmaEvent(true);
+                    OamDmaAddr = (ushort)(data << 8);
+                    OamDmaCyclesDone = 0;
+                    return;
+                case 0xFF47:    // Backgroung palette
+                    BGP = data;
+                    return;
+                case 0xFF48:    // OBP 0 palette
+                    OBP0 = data;
+                    return;
+                case 0xFF49:    // OBP 1 palette
+                    OBP1 = data;
+                    return;
+                case 0xFF40:    // LCDC
+                    LCDC = data;
+                    return;
+                case 0xFF44:    // LY
+                    // LY IS READ ONLY
+                    return;
+                case 0xFF45:    // LYC
+                    LYC = data;
+                    CheckLyLyc();
+                    return;
+                case 0xFF41:    // STAT
+                    STAT = data;
+                    return;
+                case 0xFF42:    // SCY
+                    SCY = data;
+                    return;
+                case 0xFF43:    // SCX
+                    SCX = data;
+                    return;
+                case 0xFF4A:    // WY
+                    WY = data;
+                    return;
+                case 0xFF4B:    // WX
+                    WX = data;
+                    return;
+            }
+        }
+    }
+
+    public byte Read(ushort address)
+    {
+        // Read VRAM
+        if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
+        {
+            //Console.WriteLine($"Reading VRAM [{address:X4}]");
+            return Vram[address - 0x8000];
+        }
+        // Read OAM
+        if (address >= 0xFE00 && address <= 0xFE9F && Mode < 2)
+        {
+            //Console.WriteLine($"Reading OAM [{address:X4}]");
+            return OAM[address - 0xFE00];
+        }
+        // Read LCD stuff
+        if (address >= 0xFF40 && address <= 0xFF4B)
+        {
+            switch (address)
+            {
+                case 0xFF40:
+                    //Console.WriteLine($"Reading LCDC [{address:X4}]");
+                    return LCDC;
+                case 0xFF44:
+                    //Console.WriteLine($"Reading LY [{address:X4}]");
+                    return LY;
+                case 0xFF45:
+                    //Console.WriteLine($"Reading LYC [{address:X4}]");
+                    return LYC;
+                case 0xFF41:
+                    //Console.WriteLine($"Reading LCD STAT [{address:X4}]");
+                    return STAT;
+                case 0xFF42:
+                    //Console.WriteLine($"Reading SCY [{address:X4}]");
+                    return SCY;
+                case 0xFF43:
+                    //Console.WriteLine($"Reading SCX [{address:X4}]");
+                    return SCX;
+                case 0xFF4A:
+                    //Console.WriteLine($"Reading WY [{address:X4}]");
+                    return WY;
+                case 0xFF4B:
+                    //Console.WriteLine($"Reading WX [{address:X4}]");
+                    return WX;
+            }
+        }
+        return 0xFF;
+    }
+
+    public bool Accept(ushort address)
+    {
+        return (address >= 0x8000 && address <= 0x9FFF) || 
+               (address >= 0xFE00 && address <= 0xFE9F) ||
+               (address >= 0xFF40 && address <= 0xFF4B);
+    }
+
+
+
 }
