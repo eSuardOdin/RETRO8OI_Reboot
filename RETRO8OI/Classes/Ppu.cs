@@ -7,15 +7,21 @@ public class Ppu : IMemoryMappedDevice
     public MemoryBus Bus { get; private set; }
 
     private byte _mode;
+
     public byte Mode
     {
-        get =>  _mode;
-        set 
+        get => _mode;
+        set
         {
-            if (_mode != value)
+            if (_mode != value)  // ✅ Vérifier le changement
             {
                 _mode = value;
-                CheckStatInterrupt();
+            
+                // Mettre à jour STAT
+                STAT &= 0xFC;
+                STAT |= (byte)(value & 0x3);
+            
+                OnModeSwitchEvent(value);
             }
         }
     }
@@ -41,21 +47,30 @@ public class Ppu : IMemoryMappedDevice
     private byte OBP1 = 0;
     private int VerticalCyclesCount = 0;
     private bool StatIntLine = false;
+    
+    // -- DEBUG --
+    public int VBlanks = 0;
 
     // To be handled by CPU
     public event EventHandler<bool> OamDmaEvent;
+    public event EventHandler<int> ModeSwitchEvent;
     
     public Ppu(MemoryBus bus)
     {
         Bus = bus;
         Vram = new byte[0x2000];
         OAM = new byte[0xA0];
-        _mode = 0;
+        Mode = 2;
     }
 
     protected virtual void OnOamDmaEvent(bool isStart)
     {
         OamDmaEvent?.Invoke(this, isStart);
+    }
+
+    protected virtual void OnModeSwitchEvent(int mode)
+    {
+        ModeSwitchEvent?.Invoke(this, mode);
     }
     
     public void Write(ushort address, byte data)
@@ -87,6 +102,10 @@ public class Ppu : IMemoryMappedDevice
                     return;
                 case 0xFF40:
                     //Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
+                    if ((data & 0x80) != 0x80)
+                    {
+                        Console.WriteLine("LCD DISABLED");
+                    }
                     LCDC = data;
                     return;
                 case 0xFF44:
@@ -186,6 +205,7 @@ public class Ppu : IMemoryMappedDevice
         // Check if LCD is enabled
         if ((LCDC & 0x80) == 0x80)
         {
+            //Console.WriteLine($"LCD Enabled: \n\tENTERING: Mode {Mode}, dots to consume {cycles}");
             switch (Mode) // Switch mode
             {
                 case 2: // OAM Scan
@@ -194,6 +214,7 @@ public class Ppu : IMemoryMappedDevice
                         // Going to draw pixel
                         Mode = 0x3;
                         VerticalCyclesCount -= 80;
+                        OnModeSwitchEvent(0x3);
                     }
                     break;
                 case 3: // Pixel draw
@@ -202,6 +223,7 @@ public class Ppu : IMemoryMappedDevice
                         // Going to HBlank
                         Mode = 0x0;
                         VerticalCyclesCount -= 172;
+                        OnModeSwitchEvent(0x0);
                     }
                     break;
                 case 0: // HBlank
@@ -214,12 +236,16 @@ public class Ppu : IMemoryMappedDevice
                         if (LY >= 144)
                         {
                             Mode = 0x1; // Switch to VBlank
+                            VBlanks++;
+                            //Console.WriteLine("\tVBLANK !");
                             // Write VBlank interrupt request flag
                             Bus.Write(0xFF0F, 0x1);
+                            OnModeSwitchEvent(0x1);
                         }
                         else
                         {
                             Mode = 0x2; // Switch to OAM Scan for next visible line
+                            OnModeSwitchEvent(0x2);
                         }
                     }
                     break;
@@ -233,10 +259,13 @@ public class Ppu : IMemoryMappedDevice
                         {
                             Mode = 0x2; // Switch to OAM Scan
                             LY = 0;
+                            OnModeSwitchEvent(0x2);
                         }
                     }
                     break;
-            }  
+            }
+            //Console.WriteLine($"\tEXITING: Mode {Mode}, total frame dots: {VerticalCyclesCount}");
+            
         }
         else { //LCD Disabled
             VerticalCyclesCount = 0;

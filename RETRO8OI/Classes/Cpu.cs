@@ -11,7 +11,8 @@ public class Cpu
     // public event EventHandler<bool> StopModeToggled; // TODO When working on STOP instruction 
     
     public MemoryBus Bus { get; private set; }
-    
+
+    private Ppu Ppu;
     // Registers
     private byte _f; // Backing field for flag reg
     private byte F
@@ -30,6 +31,8 @@ public class Cpu
     public ushort PC { get; private set; }
 
     private bool IsOamDma;
+
+    private int PpuMode = 0;
     // Flags
     private bool FlagZ 
     { 
@@ -58,7 +61,7 @@ public class Cpu
     private bool HaltBug;
     
     // Constructor
-    public Cpu(MemoryBus bus)
+    public Cpu(MemoryBus bus, Ppu ppu)
     {
         IsOamDma = false;
         Bus = bus;
@@ -74,6 +77,15 @@ public class Cpu
         IMEEnable = false;
         Halted = false;
         HaltBug = false;
+        
+        // Awful but used to get ppu mode
+        Ppu = ppu;
+        ppu.ModeSwitchEvent += SetPpuMode;
+    }
+
+    private void SetPpuMode(object? sender, int e)
+    {
+        PpuMode = e;
     }
 
 
@@ -2391,6 +2403,28 @@ public class Cpu
         {
             Bus.Write(address, data);
         }
+        // If OAM DMA
+        if (IsOamDma)
+        {
+            return;
+        }
+        // Check if VRAM Accessing
+        if (address >= 0x8000 && address <= 0x9FFF)
+        {
+            if (PpuMode != 3)
+            {
+                Bus.Write(address, data);
+            }
+            return;
+        }
+        // Check if OAM Accessing
+        if (address >= 0xFE00 && address <= 0xFE9F)
+        {
+            if (PpuMode < 2)
+            {
+                Bus.Write(address, data);
+            }
+        }
     }
 
     /// <summary>
@@ -2398,8 +2432,38 @@ public class Cpu
     /// </summary>
     /// <param name="address"></param>
     /// <returns></returns>
-    private byte ReadBus(ushort address) =>
-        !IsOamDma || (address >= 0xFF80 && address <= 0xFFFE) ? Bus.Read(address) : (byte)0xFF;
+    private byte ReadBus(ushort address)
+    {
+        // If OAM DMA
+        if (IsOamDma)
+        {
+            if (address >= 0xFF80 && address <= 0xFFFE)
+            {
+                return Bus.Read(address);
+            }
+
+            return 0xFF;
+        }
+        // Check if VRAM Accessing
+        if (address >= 0x8000 && address <= 0x9FFF)
+        {
+            if (PpuMode != 3)
+            {
+                return Bus.Read(address);
+            }
+            return 0xFF;
+        }
+        // Check if OAM Accessing
+        if (address >= 0xFE00 && address <= 0xFE9F)
+        {
+            if (PpuMode < 2)
+            {
+                return Bus.Read(address);
+            }
+        }
+
+        return 0xFF;
+    }
 
     public void SetCpuOamDma(bool isOamDma)
     {

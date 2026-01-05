@@ -13,7 +13,6 @@ public class Gameboy
     
     private bool _runningGame = false;
     private bool _isOamDMA = false;
-    private int _oamDmaCycles = 0;
     public int Cycles { get; set; }
     public MemoryBus Bus { get; private set; }
     public Ram Ram { get; private set; }
@@ -29,15 +28,12 @@ public class Gameboy
     public Joypad Joypad { get; private set; }
     public Serial Serial { get; private set; }
     
-    int updateCount = 0;
 
     public Gameboy()
     {
         // Init of GB
         Bus = new MemoryBus();
         Ram = new Ram();
-        //Lcd = new LCD();
-        //Oam = new OAM();
         Timer = new Timer(Bus);
         Ppu = new Ppu(Bus);
         Ppu.OamDmaEvent += SetOamDma;
@@ -48,7 +44,7 @@ public class Gameboy
         Serial = new Serial();
         
         
-        Cpu = new Cpu(Bus);
+        Cpu = new Cpu(Bus, Ppu);
         //Display = new Display(Bus, Ram);
         Cycles = 0;
         
@@ -99,18 +95,13 @@ public class Gameboy
         {
             // Get true start
             var execStart = sw.Elapsed;
-            
+            //Console.WriteLine($"--- Frame {frames:N} ---");
             // Execute the number of M-Cycles in a frame (MAIN EXEC LOOP)
             while (frame_cycles < CYCLES_PER_FRAME)
             {
                 cycles = Cpu.Execute();
                 frame_cycles += cycles; 
                 Ppu.Update(cycles);
-                // ✅ Debug : compter les appels à Update
-                updateCount++;
-                if (updateCount % 1000 == 0)
-                    Console.WriteLine($"PPU.Update appelé {updateCount} fois");
-                
                 
                 if (_isOamDMA)
                 {   
@@ -140,8 +131,8 @@ public class Gameboy
             
             if (frames >= FRAME_FREQ)
             {
-                Console.WriteLine("*DID A SECOND FRAME WORTH*");
-                Console.WriteLine($"\n*** Second n°{sw.Elapsed.TotalSeconds:F2}, FRAMES : {frames:F2}");
+                Console.WriteLine($"\n*** Second n°{sw.Elapsed.TotalSeconds:F2}, FRAMES : {frames:F2}, VBLANKS: {Ppu.VBlanks}");
+                Ppu.VBlanks = 0;
                 sw.Restart();
                 frames -= FRAME_FREQ;
             }
