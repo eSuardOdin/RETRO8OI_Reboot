@@ -1,9 +1,8 @@
-using System.Runtime.CompilerServices;
 
 namespace RETRO8OI;
 
-enum Register8 { A, B, C, D, E, H, L, F }
-enum Register16 { AF, BC, DE, HL }
+
+
 
 public class Cpu
 {

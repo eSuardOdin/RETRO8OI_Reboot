@@ -100,6 +100,15 @@ public class Ppu : IMemoryMappedDevice
                     OamDmaAddr = (ushort)(data << 8);
                     OamDmaCyclesDone = 0;
                     return;
+                case 0xFF47:    // Backgroung palette
+                    BGP = data;
+                    return;
+                case 0xFF48:    // OBP 0 palette
+                    OBP0 = data;
+                    return;
+                case 0xFF49:    // OBP 1 palette
+                    OBP1 = data;
+                    return;
                 case 0xFF40:
                     //Console.WriteLine($"Writing [{data:X2}] to LCDC [{address:X4}]");
                     if ((data & 0x80) != 0x80)
