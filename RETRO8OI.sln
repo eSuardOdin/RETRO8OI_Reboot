@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RETRO8OI", "RETRO8OI\RETRO8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RETRO8OI.UnitTest", "RETRO8OI.UnitTest\RETRO8OI.UnitTest.csproj", "{A411EFF1-7667-4002-A55C-D0A58A619D8A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisplayTest", "DisplayTest\DisplayTest.csproj", "{C123C105-9CFF-4FA5-982E-B4D1F28540B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A411EFF1-7667-4002-A55C-D0A58A619D8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C123C105-9CFF-4FA5-982E-B4D1F28540B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C123C105-9CFF-4FA5-982E-B4D1F28540B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C123C105-9CFF-4FA5-982E-B4D1F28540B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C123C105-9CFF-4FA5-982E-B4D1F28540B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
