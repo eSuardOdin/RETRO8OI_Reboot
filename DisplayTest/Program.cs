@@ -42,6 +42,7 @@ while (running)
             running = false;
     }
     // Get all tiles in tilemap
+    /*
     for (int i = 0; i < 0x100; i++)
     {
         GetTile(i, 0, 0);
@@ -49,8 +50,11 @@ while (running)
         SDL.RenderPresent(Renderer);
         SDL.Delay(100);
     }
-
-    running = false;
+    */
+    GetTile(2, 0, 0);
+    SDL.RenderPresent(Renderer);
+    SDL.Delay(100);
+    //running = false;
     /*for (offY = 0; offY < 32; offY++)
     {
         for (offX = 0; offX < 32; offX++)
@@ -70,16 +74,16 @@ while (running)
 void GetTile(int index, int offsetX, int offsetY)
 {
     var res = new byte[16]; 
-    Array.Copy(Tiles, Tilemap[index], res, 0, 16);
+    //Array.Copy(Tiles, Tilemap[index], res, 0, 16);
+    Array.Copy(Tiles, index * 0x10, res, 0, 16);
     // Pour chaque ligne à render
     for (int y = 0; y < 16; y+=2)
     {
         byte hi = res[y];
         byte lo = res[y+1];
-        int x = 0;
-        for (int i = 7; i >= 0; i--)
+        for (int x = 0; x < 8; x++)
         {
-            byte pix_index = (byte)( ((lo & (1 << i)) >> i) | ((hi & (1 << i)) >> (i - 1)) );
+            byte pix_index = (byte)( ((lo & (1 << x)) >> x) | ((hi & (1 << x)) >> (x - 1)) );
             SetpixelColor(pix_index, Renderer);
             SDL.FRect rect = new SDL.FRect
             {
@@ -88,7 +92,6 @@ void GetTile(int index, int offsetX, int offsetY)
                 W = scale,
                 H = scale
             };
-            x++;
             SDL.RenderFillRect(Renderer, ref rect);
         }
         
@@ -101,16 +104,16 @@ void SetpixelColor(byte px, IntPtr renderer)
 {
     switch (px)
     {
-        case 3:
+        case 0:
             SDL.SetRenderDrawColor(renderer, 0, 0, 0, 255);
             return;
-        case 2:
+        case 1:
             SDL.SetRenderDrawColor(renderer, 60, 60, 60, 255);
             return;
-        case 1:
+        case 2:
             SDL.SetRenderDrawColor(renderer, 160, 160, 160, 255);
             return;
-        case 0:
+        case 3:
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
             return;
     }
