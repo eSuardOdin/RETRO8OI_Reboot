@@ -6,32 +6,122 @@ Console.WriteLine($"Tiles = {args[1]}");
 // Get tilemap
 byte[] Tilemap = File.ReadAllBytes(args[0]);
 byte[] Tiles = File.ReadAllBytes(args[1]);
-byte[] frameBuffer = new byte[0x400];
-int sx = 0;
-int sy = 0;
-
+uint[] BGPalette = new uint[4]
+{
+    0xFF9BBC0F, 
+    0xFF8BAC0F,
+    0xFF306230,
+    0xFF0F380F
+};
+int scx = 0;
+int scy = 0;
+int line = 0;
 int width = 160;
 int height = 144;
+byte[] FrameBuffer = new byte[width * height];
 int tileWH = 8;
 int scale = 2;
 int fullWidth = 32 * tileWH * scale;
 int fullHeight = 32 * tileWH * scale;
 IntPtr Window;
 IntPtr Renderer;
+IntPtr Texture;
+
+
+// Init SDL
 if (!SDL.Init(SDL.InitFlags.Video))
 {
     SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
     return;
 }
 
-
-//if (!SDL.CreateWindowAndRenderer("SDL3 Create Window",tileWH*scale, tileWH*scale, 0, out Window, out Renderer))
-if (!SDL.CreateWindowAndRenderer("SDL3 Create Window",fullWidth, fullHeight, 0, out Window, out Renderer))
+// Creating renderer and window
+//if (!SDL.CreateWindowAndRenderer("SDL3 Create Window",fullWidth, fullHeight, 0, out Window, out Renderer))
+if (!SDL.CreateWindowAndRenderer("Display Test",width, height, 0, out Window, out Renderer))
 {
     SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
     return;
 }
 
+
+// Creating texture
+Texture = SDL.CreateTexture(Renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Streaming, width, height);
+while (true)
+{
+
+    for (line = 0; line < height; line++)
+    {
+        GetLineInBuffer(line);
+    }
+
+    Render();
+    scx += 1;
+    scy += 3;
+    SDL.Delay(30);
+}
+
+void GetLineInBuffer(int line)
+{
+    int posY = (scy + line) % 0xFF;
+    int tileY = posY / 8;
+    int row = posY % 8;
+    int posX, tileX, pixX;
+    byte lo = 0;
+    byte hi = 0;
+    byte hi_b, lo_b;
+    
+    for (int x = 0; x < 160; x++)
+    {
+        posX = (scx + x) % 0xFF;
+        tileX = posX / 8;
+        pixX = posX % 8;
+        
+        // If first pixel of tile row, get tile
+        if (x == 0 || pixX % 8 == 0)
+        {
+            var tile = new byte[16]; 
+            int tile_index =  tileY * 0x20 + tileX;
+            Array.Copy(Tiles, Tilemap[tile_index] * 0x10, tile, 0, 16);
+            hi = tile[(row * 2)+1];
+            lo = tile[(row * 2)];
+        }
+        
+        // Get palette index
+        hi_b = (byte)((hi >> (7 - pixX)) & 1);
+        lo_b = (byte)((lo >> (7 - pixX)) & 1);
+        byte pix_index = (byte) (lo_b | (hi_b<<1));
+        
+        // Put in Framebuffer
+        FrameBuffer[line * width + x] = pix_index;
+    }
+}
+
+void Render()
+{
+    // Get color values in array
+    uint[] pixels = new uint[width * height];
+    for (int i = 0; i < FrameBuffer.Length; i++)
+    {
+        pixels[i] = BGPalette[FrameBuffer[i]];
+    }
+
+    unsafe
+    {
+        // Prevent garbage collector to move pixels[]
+        fixed (uint* ptr = pixels)
+        {
+            SDL.UpdateTexture(Texture, nint.Zero, (nint)ptr, width * sizeof(uint));
+        }
+    }
+    SDL.RenderClear(Renderer);
+    SDL.RenderTexture(Renderer, Texture, nint.Zero, nint.Zero);
+    SDL.RenderPresent(Renderer);
+}
+
+
+
+
+/*** WORKING UGLY ***
 bool running = true;
 int offX = 0, offY = 0;
 int tileIndex = 0;
@@ -54,16 +144,18 @@ while (running)
         offY = (tileY) * scale * tileWH;
         GetTile(i, offX, offY);
         SDL.RenderPresent(Renderer);
-        SDL.Delay(120);
+        SDL.Delay(30);
     }
     
     //Console.WriteLine($"0x{Tiles[0x20]:x2} 0x{Tiles[0x21]:x2}");
     //GetTile(2, offX, offY); //Test Tile 2
     
-    
     SDL.RenderPresent(Renderer);
     while(true) {}
 }
+
+
+
 
 
 
@@ -115,44 +207,18 @@ void SetpixelColor(byte px, IntPtr renderer)
     switch (px)
     {
         case 3:
-            SDL.SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL.SetRenderDrawColor(renderer, 20, 60, 20, 255);
             return;
         case 2:
-            SDL.SetRenderDrawColor(renderer, 60, 60, 60, 255);
+            SDL.SetRenderDrawColor(renderer, 70, 110, 40, 255);
             return;
         case 1:
-            SDL.SetRenderDrawColor(renderer, 160, 160, 160, 255);
+            SDL.SetRenderDrawColor(renderer, 140, 175, 20, 255);
             return;
         case 0:
-            SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL.SetRenderDrawColor(renderer, 160, 190, 20, 255);
             return;
     }
 }
 
-
-/*
- * Pour chaque ligne :
-   
-   Je vais chercher les bytes row et row+1 (row étant le numéro de ligne % 8)
-   
-   Je dois chopper une ligne (+ un éventuel SCX)
-   La ligne correspond à l'index de ligne * 0x20 et le row de la sprite est la ligne % 8
-   
-   On a donc les deux octets de la row = GetLine(Tilemap[Tiles[ligne]])
-   
-*/
-void GetLine(int lineIndex)
-{
-    byte least_significant_row;
-    byte highest_significant_row;
-    // Get the palette indices of the whole line
-    byte[] line = new byte[256];
-
-    int tilemapLine = lineIndex * 0x20;
-    
-    for (int i = tilemapLine; i < tilemapLine + 0x20; i++)
-    {
-        
-    }
-}
-
+/***/
