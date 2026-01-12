@@ -6,12 +6,21 @@ Console.WriteLine($"Tiles = {args[1]}");
 // Get tilemap
 byte[] Tilemap = File.ReadAllBytes(args[0]);
 byte[] Tiles = File.ReadAllBytes(args[1]);
-uint[] BGPalette = new uint[4]
+uint[] BGPalette = new uint[4];
+uint[] BGPaletteA = new uint[4]
 {
-    0xFF9BBC0F, 
-    0xFF8BAC0F,
-    0xFF306230,
-    0xFF0F380F
+    0xFFE0F8A0,  // Vert très clair (fond)
+    0xFF88C070,  // Vert clair
+    0xFF346856,  // Vert foncé
+    0xFF081820 
+};
+
+uint[] BGPaletteB = new uint[4]
+{
+    0xFF081820, 
+    0xFF346856,  // Vert foncé
+    0xFF88C070,  // Vert clair
+    0xFFE0F8A0  // Vert très clair (fond)
 };
 int scx = 0;
 int scy = 0;
@@ -26,6 +35,9 @@ int fullHeight = 32 * tileWH * scale;
 IntPtr Window;
 IntPtr Renderer;
 IntPtr Texture;
+
+byte LCDC = 0x0;
+bool IsBGTileMapArea = (LCDC & 0x8) == 0x8;
 
 
 // Init SDL
@@ -43,7 +55,6 @@ if (!SDL.CreateWindowAndRenderer("Display Test",width, height, 0, out Window, ou
     return;
 }
 
-
 // Creating texture
 Texture = SDL.CreateTexture(Renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Streaming, width, height);
 while (true)
@@ -57,6 +68,10 @@ while (true)
     Render();
     scx += 1;
     scy += 3;
+    if (scx % 13 == 0)
+    {
+        BGPalette = BGPalette == BGPaletteA ? BGPaletteB : BGPaletteA;
+    }
     SDL.Delay(30);
 }
 
@@ -80,7 +95,8 @@ void GetLineInBuffer(int line)
         if (x == 0 || pixX % 8 == 0)
         {
             var tile = new byte[16]; 
-            int tile_index =  tileY * 0x20 + tileX;
+            int tile_index = tileY * 0x20 + tileX;
+            tile_index += IsBGTileMapArea ? 0x40 : 0;
             Array.Copy(Tiles, Tilemap[tile_index] * 0x10, tile, 0, 16);
             hi = tile[(row * 2)+1];
             lo = tile[(row * 2)];
