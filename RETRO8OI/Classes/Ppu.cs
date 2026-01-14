@@ -89,6 +89,33 @@ public class Ppu : IMemoryMappedDevice
     private int VerticalCyclesCount = 0;
     private bool StatIntLine = false;
     
+    
+    // SDL Stuff
+    private int Width = 160;
+    private int Height = 144;
+    private byte[] FrameBuffer;
+    private IntPtr Renderer;
+    private IntPtr Texture;
+    private IntPtr Window;
+    
+    
+    
+    private uint GetColor(byte index)
+    {
+        switch ( index )
+        {
+            case 0b00:
+                return 0xFFE0F8A0;
+            case 0b01:
+                return 0xFF88C070;
+            case 0b10:
+                return 0xFF346856;
+            case 0b11:
+                return 0xFF081820;
+        }
+
+        return 0;
+    }
     // -- DEBUG --
     public int VBlanks = 0;
 
@@ -102,6 +129,25 @@ public class Ppu : IMemoryMappedDevice
         Vram = new byte[0x2000];
         OAM = new byte[0xA0];
         Mode = 2;
+        FrameBuffer = new byte [Width * Height];
+        
+        // SDL INIT
+        // Init SDL
+        if (!SDL.Init(SDL.InitFlags.Video))
+        {
+            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
+            return;
+        }
+
+// Creating renderer and window
+        if (!SDL.CreateWindowAndRenderer("Display Test",Width, Height, 0, out Window, out Renderer))
+        {
+            SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
+            return;
+        }
+
+// Creating texture
+        Texture = SDL.CreateTexture(Renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Streaming, Width, Height);
     }
 
     protected virtual void OnOamDmaEvent(bool isStart)
@@ -155,7 +201,6 @@ public class Ppu : IMemoryMappedDevice
                         {
                             Mode = 0x1; // Switch to VBlank
                             VBlanks++;
-                            //Console.WriteLine("\tVBLANK !");
                             // Write VBlank interrupt request flag
                             Bus.Write(0xFF0F, 0x1);
                             OnModeSwitchEvent(0x1);
@@ -182,7 +227,6 @@ public class Ppu : IMemoryMappedDevice
                     }
                     break;
             }
-            //Console.WriteLine($"\tEXITING: Mode {Mode}, total frame dots: {VerticalCyclesCount}");
             
         }
         else { //LCD Disabled
@@ -247,6 +291,47 @@ public class Ppu : IMemoryMappedDevice
     
     
     
+    /** Working in DISPLAY TEST project
+    private void GetLineInBuffer(int line)
+    {
+        int posY = (SCY + line) % 0xFF;
+        int tileY = posY / 8;
+        int row = posY % 8;
+        int posX, tileX, pixX;
+        byte lo = 0;
+        byte hi = 0;
+        byte hi_b, lo_b;
+    
+        for (int x = 0; x < 160; x++)
+        {
+            posX = (SCX + x) % 0xFF;
+            tileX = posX / 8;
+            pixX = posX % 8;
+        
+            // If first pixel of tile row, get tile
+            if (x == 0 || pixX % 8 == 0)
+            {
+                var tile = new byte[16]; 
+                int tile_index = tileY * 0x20 + tileX;
+                tile_index += IsBGTileMapArea ? 0x40 : 0;
+                Array.Copy(Tiles, Tilemap[tile_index] * 0x10, tile, 0, 16);
+                hi = tile[(row * 2)+1];
+                lo = tile[(row * 2)];
+            }
+        
+            // Get palette index
+            hi_b = (byte)((hi >> (7 - pixX)) & 1);
+            lo_b = (byte)((lo >> (7 - pixX)) & 1);
+            byte pix_index = (byte) (lo_b | (hi_b<<1));
+        
+            // Put in Framebuffer
+            FrameBuffer[line * width + x] = pix_index;
+        }
+    }
+    **/
+    
+    
+    
     
     
     // MEMORY MAPPED STUFF
@@ -255,7 +340,10 @@ public class Ppu : IMemoryMappedDevice
         // Write VRAM only if mode != 3
         if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
         {
-            //Console.WriteLine($"Writing [{data:X2}] to VRAM [{address:X4}]");
+            if (address == 0x8004)
+            {
+                Console.WriteLine($"Writing [{data:X2}] to VRAM [{address:X4}]");
+            }
             Vram[address - 0x8000] =  data;
             return;
         }

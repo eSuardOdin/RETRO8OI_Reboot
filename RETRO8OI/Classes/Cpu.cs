@@ -2469,21 +2469,11 @@ public class Cpu
         IsOamDma = isOamDma;
     }
     
-    public void PrintRegisters()
-    {
-        //Console.WriteLine("=== CPU Registers ===");
-        //Console.WriteLine($"AF: 0x{AF:X4}  (A: 0x{A:X2}, F: 0x{F:X2})");
-        //Console.WriteLine($"BC: 0x{BC:X4}  (B: 0x{B:X2}, C: 0x{C:X2})");
-        //Console.WriteLine($"DE: 0x{DE:X4}  (D: 0x{D:X2}, E: 0x{E:X2})");
-        //Console.WriteLine($"HL: 0x{HL:X4}  (H: 0x{H:X2}, L: 0x{L:X2})");
-        //Console.WriteLine($"SP: 0x{SP:X4}");
-        //Console.WriteLine($"PC: 0x{PC:X4}");
-        //Console.WriteLine($"Flags: Z:{(F >> 7 & 1)} N:{(F >> 6 & 1)} H:{(F >> 5 & 1)} C:{(F >> 4 & 1)}");
-        //Console.WriteLine("====================");
-    }
+    
 
     public int HandleInterrupts()
     {
+        if (!IME) return 0;
         // Compare interrupts flags and enables
         byte IE = Bus.Read(0xFFFF);
         byte IF = Bus.Read(0xFF0F);
@@ -2503,7 +2493,6 @@ public class Cpu
     private int ExecInterrupt(int b)
     {
         int cycles = 0;
-        /*// Debug
         String intStr;
         switch (b)
         {
@@ -2526,7 +2515,7 @@ public class Cpu
                 intStr = "WTF";
                 break;
         }
-        Console.WriteLine($"Executing {intStr} interrupt.");*/
+        Console.WriteLine($"Executing {intStr} interrupt.");
         if (Halted)
         {
             Halted = false;
