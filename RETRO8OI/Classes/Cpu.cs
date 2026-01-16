@@ -20,7 +20,6 @@ public class Cpu
         set => _f = (byte)(value & 0xF0);
     }
 
-    private int VBlanks = 0;
     private byte A, B, C, D, E, H, L; 
     private ushort AF{ get { return (ushort)(A << 8 | F); } set { A = (byte)(value >> 8); F = (byte)(value & 0xFF); } }
     private ushort BC { get { return (ushort)(B << 8 | C); } set { B = (byte)(value >> 8); C = (byte)(value & 0xFF); } }
@@ -90,6 +89,7 @@ public class Cpu
 
     public int Execute()
     {
+        
         // Enable IME if EI on previous instruction
         if (IMEEnable)
         {
@@ -107,7 +107,6 @@ public class Cpu
         
         
         int cycles = 0;
-        //Console.WriteLine($"[{PC-1:X2}] => {opcode:X2}");
         // --- Decode ---
         switch ((opcode & 0xF0)>>4)
         {
@@ -1208,14 +1207,11 @@ public class Cpu
     private int JR(bool condition)
     {
         sbyte signedOffest = (sbyte)Bus.Read(PC++);
-        //Console.Write($"Trying to JR [{signedOffest}] -> Condition ");
         if (condition)
         {
             PC = (ushort)(PC + signedOffest);
-            //Console.WriteLine($"MET");
             return 12;
         }
-        //Console.WriteLine($"NOT MET");
         return 8;
     }
 
@@ -1233,6 +1229,8 @@ public class Cpu
         byte lo = Bus.Read(PC);
         byte hi =  Bus.Read((ushort)(PC + 1));
         ushort jpAddress = (ushort)((hi << 8) | lo);
+        // Increment the program counter
+        PC += 2;
         
         // Get the return address from stack
         if (condition || !isConditional)
@@ -1281,7 +1279,6 @@ public class Cpu
         {
             PUSH(PC);
             PC = address;
-            ////Console.WriteLine($"CALL, PC IS NOW [{PC:X}].");
             return 16;
         }
         return 12;
@@ -2478,6 +2475,8 @@ public class Cpu
         byte IE = Bus.Read(0xFFFF);
         byte IF = Bus.Read(0xFF0F);
 
+        //Console.WriteLine($"Before handling interrupt: IE={IE:X2}, IF={IF:X2}, IME={IME}");
+                
         for (int b = 0; b < 5; b++)
         {
             if(((IE & (1 << b)) == (1 << b) && (IF & (1 << b)) == (1 << b)))
@@ -2485,7 +2484,7 @@ public class Cpu
                 return ExecInterrupt(b);
             }
         }
-
+        
         return 0;
     }
 
@@ -2497,7 +2496,7 @@ public class Cpu
         switch (b)
         {
             case 0 :
-                intStr = "VBlank";
+                intStr = $"VBlank";
                 break;
             case 1 :
                 intStr = "LCD";
@@ -2515,7 +2514,8 @@ public class Cpu
                 intStr = "WTF";
                 break;
         }
-        Console.WriteLine($"Executing {intStr} interrupt.");
+        //Console.WriteLine($"Executing {intStr} interrupt. PC before: 0x{PC:X4}");
+        //throw new Exception();
         if (Halted)
         {
             Halted = false;
@@ -2525,18 +2525,21 @@ public class Cpu
         if (IME)
         {
             
-            // Disable bit of interrupt flag
-            byte IF = Bus.Read(0xFF0F);
-            IF &= (byte)~(1 << b);
-            Bus.Write(0xFF0F, IF);
-            // Disable IME
-            IME = false;
             // Get return from interrupt vector value 
             PUSH(PC);
             PC = (ushort)(0x40 + (b * 8));
+            // Disable IME
+            IME = false;
+            // Disable bit of interrupt flag
+            byte IE = Bus.Read(0xFFFF);
+            byte IF = Bus.Read(0xFF0F);
+            IF &= (byte)~(1 << b);
+            Bus.Write(0xFF0F, IF);
             //Console.WriteLine($"IME enabled, jumping to 0x{PC:X4}.");
             cycles += 16;
+            //Console.WriteLine($"After handling interrupt: IE={IE:X2}, IF={IF:X2}, IME={IME}");
         }
+        
         return cycles;
     }
     

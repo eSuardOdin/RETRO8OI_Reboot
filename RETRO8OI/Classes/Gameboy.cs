@@ -95,12 +95,11 @@ public class Gameboy
         {
             // Get true start
             var execStart = sw.Elapsed;
-            //Console.WriteLine($"--- Frame {frames:N} ---");
             // Execute the number of M-Cycles in a frame (MAIN EXEC LOOP)
             while (frame_cycles < CYCLES_PER_FRAME)
             {
                 cycles = Cpu.Execute();
-                frame_cycles += cycles; 
+                frame_cycles += cycles;
                 Ppu.Update(cycles);
                 
                 if (_isOamDMA)
@@ -110,10 +109,10 @@ public class Gameboy
                 Timer.UpdateTimers(cycles);
                 Cpu.HandleInterrupts();
             }
-            //Console.WriteLine($"-- Frame lasted {(sw.Elapsed - execStart).TotalMilliseconds:F2} ms ({1000.0 / FRAME_FREQ})");
             
             // Frame number updated and remaining cycles saved for next frame
             frames++;
+            //Console.WriteLine($"{Ppu.VBlanks} VBLANKS on frame {frames}");
             frame_cycles -= CYCLES_PER_FRAME;
             
             // Wait for frame time
@@ -131,12 +130,13 @@ public class Gameboy
             
             if (frames >= FRAME_FREQ)
             {
-                Console.WriteLine($"\n*** Second n°{sw.Elapsed.TotalSeconds:F2}, FRAMES : {frames:F2}, VBLANKS: {Ppu.VBlanks}");
+                //Console.WriteLine($"\n*** Second n°{sw.Elapsed.TotalSeconds:F2}, FRAMES : {frames:F2}, VBLANKS: {Ppu.VBlanks}");
                 Ppu.VBlanks = 0;
                 sw.Restart();
                 frames -= FRAME_FREQ;
             }
-            
+
+
         }
     }
 

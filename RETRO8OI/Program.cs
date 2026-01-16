@@ -17,6 +17,7 @@ else
     {
         Gameboy gameboy = new();
         gameboy.LoadCart(args[0]);
+        
         gameboy.Run();
     }
     catch (Exception e)

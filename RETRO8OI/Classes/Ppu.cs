@@ -200,7 +200,9 @@ public class Ppu : IMemoryMappedDevice
                         if (LY >= 144)
                         {
                             Mode = 0x1; // Switch to VBlank
+                            Console.WriteLine($"VBLANK n°{VBlanks} requested with LY {LY}.\nSCX: {SCX}\nSCY: {SCY}");
                             VBlanks++;
+                            
                             // Write VBlank interrupt request flag
                             Bus.Write(0xFF0F, 0x1);
                             OnModeSwitchEvent(0x1);
@@ -335,16 +337,12 @@ public class Ppu : IMemoryMappedDevice
     
     
     // MEMORY MAPPED STUFF
-        public void Write(ushort address, byte data)
+    public void Write(ushort address, byte data)
     {
         // Write VRAM only if mode != 3
         if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
         {
-            if (address == 0x8004)
-            {
-                Console.WriteLine($"Writing [{data:X2}] to VRAM [{address:X4}]");
-            }
-            Vram[address - 0x8000] =  data;
+            Vram[address - 0x8000] = data;
             return;
         }
         // Write to OAM only if mode 0 or 1 (VBlank, HBlank)
@@ -389,9 +387,11 @@ public class Ppu : IMemoryMappedDevice
                     return;
                 case 0xFF42:    // SCY
                     SCY = data;
+                    Console.WriteLine($"{SCY}");
                     return;
                 case 0xFF43:    // SCX
                     SCX = data;
+                    Console.WriteLine($"{SCX}");
                     return;
                 case 0xFF4A:    // WY
                     WY = data;
