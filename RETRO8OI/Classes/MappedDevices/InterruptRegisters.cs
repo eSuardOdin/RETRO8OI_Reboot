@@ -10,7 +10,7 @@ public class InterruptRegisters:IMemoryMappedDevice
     public InterruptRegisters()
     {
         IE = 0;
-        IF = 0;
+        IF = 0xE1;
     }
     
     public void Write(ushort address, byte data)
@@ -18,12 +18,12 @@ public class InterruptRegisters:IMemoryMappedDevice
         if (address == 0xFF0F)
         {
             //Console.WriteLine($"Writing [{data:X2}] to IF [{address:X4}]");
-            IF |= data;
+            IF = data;
         }
         else
         {
             //Console.WriteLine($"Writing [{data:X2}] to IE [{address:X4}]");
-            IE |= data;
+            IE = data;
         }
     }
 

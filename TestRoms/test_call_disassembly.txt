@@ -11,3 +11,6 @@ $10FF	3C		-> INC A
 $1100	FE 0F		-> CP A $0F
 $1102	C2 FF 10	-> JP nz 10FF -> Bug ici, il passe bien dans C2 mais le PC passe juste ) $1103 et prend FF comme prochain opcode
 $1105	C9		-> RET
+
+
+TEST OK !!

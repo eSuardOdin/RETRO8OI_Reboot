@@ -1,0 +1,27 @@
+0100	F3 		: di
+0101	C3 41 00 	: jp $0041
+0041	FA 44 FF 	: ld a [$FF44] 			-> check for rLY (wait VBLANK)
+0044	FE 90		: cp a 144			-> pour set le flag de jump
+0046	20 F9		: jr nz $F9  			-> (1111 1001) = -(0000 0111) (-7)
+0048	AF		: xor a 			(pour le LCDC)
+0049	EA FF 40	: ld [FF40/LCDC] a 		-> stop le LCD
+004C	CD 00 00 	: call $0000
+
+###### Copie des tiles dans la VRAM ####
+0000	11 00 64	: ld de $6400 			-> (Où les tiles sont copiées)
+0003	21 00 80	: ld hl $8000			-> Première adresse de la VRAM
+0006	1A		: la a [de]			-> Donnée de tile dans l'acc
+0007	13		: inc de
+0008	22		: ld [hli] a			-> On copie la data dans la VRAM en incrémentant
+0009	7A		: ld a d			
+000A	FE 80		: cp a, $80			-> On vérifie le hi du registre de (si $80, fin de ROM)
+000C	20 F8		: jr nz, -8			-> On jump à $0006 si données en cours de copie
+
+##### On set la palette du background ###
+000E	3E E4		: ld a, $e4
+0010	EA 47 FF	: ld [FF47], a			-> Load de la palette background (1110 0100)
+0013	3E 01		: ld a, $01
+0015	EA FF FF	: ld [FFFF] a			-> On écrit 1 dans le registre Interrupt enable (VBlank)  
+0018	FB		: ei				-> On enable les interruptions							
+0019	3E 81		: ld a, $81	# Vérifié								
+001B	EA 40 FF	: ld [FF40] a			-> On écrit #1000_0001 dans le LCDC (LCD et PPU Enable + BG & Window Enable)

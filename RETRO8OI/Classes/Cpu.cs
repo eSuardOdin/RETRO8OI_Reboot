@@ -87,7 +87,7 @@ public class Cpu
     }
 
 
-    public int Execute()
+    public int ExecuteNextInstruction()
     {
         
         // Enable IME if EI on previous instruction
@@ -97,7 +97,9 @@ public class Cpu
             IMEEnable = false;
         }
         // Get the current opcode
+        //Console.WriteLine($"PC is {PC:X4}");
         byte opcode = Bus.Read(PC++);
+        //Console.WriteLine($"Opcode is now {opcode:X4}");
         // If halt bug
         if (HaltBug)
         {
@@ -1317,6 +1319,7 @@ public class Cpu
         SP -= 2;
         Bus.Write(SP, (byte)value);
         Bus.Write((ushort)(SP+1), (byte)(value >> 8));
+        //Console.WriteLine($"Pushed {(Bus.Read((ushort)((SP+1) << 8)) | Bus.Read(SP)):X4} to [{SP:X4}]");
     }
     
     private void HALT()
@@ -2514,6 +2517,7 @@ public class Cpu
                 intStr = "WTF";
                 break;
         }
+        //Console.WriteLine($"Before interrupt, LCDC = {Bus.Read(0xFF40):X4}, SP = {SP:X4}, PC = {PC:X4}");
         //Console.WriteLine($"Executing {intStr} interrupt. PC before: 0x{PC:X4}");
         //throw new Exception();
         if (Halted)
@@ -2538,8 +2542,9 @@ public class Cpu
             //Console.WriteLine($"IME enabled, jumping to 0x{PC:X4}.");
             cycles += 16;
             //Console.WriteLine($"After handling interrupt: IE={IE:X2}, IF={IF:X2}, IME={IME}");
+            //Console.WriteLine($"After interrupt, LCDC = {Bus.Read(0xFF40):X4}, SP = {SP:X4} ({(Bus.Read((ushort)((SP+1) << 8)) | Bus.Read(SP)):X4}), PC = {PC:X4}");
+
         }
-        
         return cycles;
     }
     

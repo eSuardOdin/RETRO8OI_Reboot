@@ -98,7 +98,7 @@ public class Gameboy
             // Execute the number of M-Cycles in a frame (MAIN EXEC LOOP)
             while (frame_cycles < CYCLES_PER_FRAME)
             {
-                cycles = Cpu.Execute();
+                cycles = Cpu.ExecuteNextInstruction();
                 frame_cycles += cycles;
                 Ppu.Update(cycles);
                 
@@ -112,7 +112,7 @@ public class Gameboy
             
             // Frame number updated and remaining cycles saved for next frame
             frames++;
-            //Console.WriteLine($"{Ppu.VBlanks} VBLANKS on frame {frames}");
+            Console.WriteLine($"{Ppu.VBlanks} VBLANKS on frame {frames}");
             frame_cycles -= CYCLES_PER_FRAME;
             
             // Wait for frame time

@@ -15,6 +15,7 @@ public class Ppu : IMemoryMappedDevice
         {
             if (_mode != value)
             {
+                //Console.WriteLine($"Changing from mode {_mode} to mode {value}");
                 _mode = value;
             
                 // STAT Update
@@ -128,7 +129,7 @@ public class Ppu : IMemoryMappedDevice
         Bus = bus;
         Vram = new byte[0x2000];
         OAM = new byte[0xA0];
-        Mode = 2;
+        Mode = 0;
         FrameBuffer = new byte [Width * Height];
         
         // SDL INIT
@@ -178,7 +179,6 @@ public class Ppu : IMemoryMappedDevice
                         // Going to draw pixel
                         Mode = 0x3;
                         VerticalCyclesCount -= 80;
-                        OnModeSwitchEvent(0x3);
                     }
                     break;
                 case 3: // Pixel draw
@@ -187,7 +187,6 @@ public class Ppu : IMemoryMappedDevice
                         // Going to HBlank
                         Mode = 0x0;
                         VerticalCyclesCount -= 172;
-                        OnModeSwitchEvent(0x0);
                     }
                     break;
                 case 0: // HBlank
@@ -204,13 +203,12 @@ public class Ppu : IMemoryMappedDevice
                             VBlanks++;
                             
                             // Write VBlank interrupt request flag
-                            Bus.Write(0xFF0F, 0x1);
-                            OnModeSwitchEvent(0x1);
+                            byte IF = Bus.Read(0xFF0F); 
+                            Bus.Write(0xFF0F, (byte)(IF | 0x1));
                         }
                         else
                         {
                             Mode = 0x2; // Switch to OAM Scan for next visible line
-                            OnModeSwitchEvent(0x2);
                         }
                     }
                     break;
@@ -224,7 +222,6 @@ public class Ppu : IMemoryMappedDevice
                         {
                             Mode = 0x2; // Switch to OAM Scan
                             LY = 0;
-                            OnModeSwitchEvent(0x2);
                         }
                     }
                     break;
@@ -287,7 +284,8 @@ public class Ppu : IMemoryMappedDevice
         // If rising edge on stat interrupt
         if (StatIntLine && !oldStatLine)
         {
-            Bus.Write(0xFF0F, 0x2);
+            byte IF = Bus.Read(0xFF0F);
+            Bus.Write(0xFF0F, (byte) (IF | 0x2));
         }
     }
     
@@ -374,6 +372,13 @@ public class Ppu : IMemoryMappedDevice
                     return;
                 case 0xFF40:    // LCDC
                     LCDC = data;
+                    Console.WriteLine($"Written ${data:X2} to LCDC");
+                    // if (!IsLcdPpuEnabled)
+                    // {
+                    //     VerticalCyclesCount = 0;
+                    //     LY = 0;
+                    //     Mode = 0;
+                    // }
                     return;
                 case 0xFF44:    // LY
                     // LY IS READ ONLY
