@@ -61,9 +61,14 @@ public class Ppu : IMemoryMappedDevice
         get => (LCDC & 0x40) == 0x40 ? (ushort)0x9800 : (ushort)0x9C00;
     }
 
-    private ushort BGWindowTileDataArea
+    private ushort TileMapBaseAddress
     {
         get => (LCDC & 0x10) == 0x10 ? (ushort)0x8800 : (ushort)0x8000;
+    }
+
+    private ushort BGTileMapArea
+    {
+        get => (LCDC & 0x8) == 0x8 ? (ushort)0x9C00 : (ushort)0x9800;
     }
 
     private bool IsDoubleObjWidth
@@ -89,7 +94,13 @@ public class Ppu : IMemoryMappedDevice
     private byte OBP1 = 0;
     private int VerticalCyclesCount = 0;
     private bool StatIntLine = false;
-    
+    uint[] BGPalette = new uint[4]
+    {
+        0xFFE0F8A0,  // Vert très clair (fond)
+        0xFF88C070,  // Vert clair
+        0xFF346856,  // Vert foncé
+        0xFF081820 
+    };
     
     // SDL Stuff
     private int Width = 160;
@@ -182,6 +193,8 @@ public class Ppu : IMemoryMappedDevice
                 case 3: // Pixel draw
                     if (VerticalCyclesCount >= 172)
                     {
+                        // Display line
+                        GetLineInBuffer(LY);
                         // Going to HBlank
                         Mode = 0x0;
                         VerticalCyclesCount -= 172;
@@ -201,6 +214,7 @@ public class Ppu : IMemoryMappedDevice
                             // Write VBlank interrupt request flag
                             byte IF = Bus.Read(0xFF0F); 
                             Bus.Write(0xFF0F, (byte)(IF | 0x1));
+                            Render();
                         }
                         else
                         {
@@ -287,7 +301,7 @@ public class Ppu : IMemoryMappedDevice
     
     
     
-    /** Working in DISPLAY TEST project
+    /** Working in DISPLAY TEST project */
     private void GetLineInBuffer(int line)
     {
         int posY = (SCY + line) % 0xFF;
@@ -308,9 +322,20 @@ public class Ppu : IMemoryMappedDevice
             if (x == 0 || pixX % 8 == 0)
             {
                 var tile = new byte[16]; 
-                int tile_index = tileY * 0x20 + tileX;
-                tile_index += IsBGTileMapArea ? 0x40 : 0;
-                Array.Copy(Tiles, Tilemap[tile_index] * 0x10, tile, 0, 16);
+                byte tileIndex = Bus.Read( (ushort)(BGTileMapArea + (tileY * 0x20 + tileX)));
+                // Getting the offset in VRAM
+                int offsetVram = TileMapBaseAddress - 0x8000;
+                // If $8800 mode (index is signed)
+                if (TileMapBaseAddress == 0x8800)
+                {
+                    sbyte index = (sbyte)tileIndex;   
+                    Array.Copy(Vram, Vram[offsetVram + index] * 0x10, tile, 0, 16);
+                }
+                // Else if $8000 mode
+                else
+                {
+                    Array.Copy(Vram, Vram[offsetVram + tileIndex] * 0x10, tile, 0, 16);
+                }
                 hi = tile[(row * 2)+1];
                 lo = tile[(row * 2)];
             }
@@ -318,16 +343,35 @@ public class Ppu : IMemoryMappedDevice
             // Get palette index
             hi_b = (byte)((hi >> (7 - pixX)) & 1);
             lo_b = (byte)((lo >> (7 - pixX)) & 1);
-            byte pix_index = (byte) (lo_b | (hi_b<<1));
+            byte pixIndex = (byte) (lo_b | (hi_b<<1));
         
             // Put in Framebuffer
-            FrameBuffer[line * width + x] = pix_index;
+            FrameBuffer[line * Width + x] = pixIndex;
         }
     }
-    **/
     
     
-    
+    void Render()
+    {
+        // Get color values in array
+        uint[] pixels = new uint[Width * Height];
+        for (int i = 0; i < FrameBuffer.Length; i++)
+        {
+            pixels[i] = BGPalette[FrameBuffer[i]];
+        }
+
+        unsafe
+        {
+            // Prevent garbage collector to move pixels[]
+            fixed (uint* ptr = pixels)
+            {
+                SDL.UpdateTexture(Texture, nint.Zero, (nint)ptr, Width * sizeof(uint));
+            }
+        }
+        SDL.RenderClear(Renderer);
+        SDL.RenderTexture(Renderer, Texture, nint.Zero, nint.Zero);
+        SDL.RenderPresent(Renderer);
+    }
     
     
     // MEMORY MAPPED STUFF
