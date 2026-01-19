@@ -112,7 +112,6 @@ public class Gameboy
             
             // Frame number updated and remaining cycles saved for next frame
             frames++;
-            Console.WriteLine($"{Ppu.VBlanks} VBLANKS on frame {frames}");
             frame_cycles -= CYCLES_PER_FRAME;
             
             // Wait for frame time
@@ -130,8 +129,6 @@ public class Gameboy
             
             if (frames >= FRAME_FREQ)
             {
-                //Console.WriteLine($"\n*** Second n°{sw.Elapsed.TotalSeconds:F2}, FRAMES : {frames:F2}, VBLANKS: {Ppu.VBlanks}");
-                Ppu.VBlanks = 0;
                 sw.Restart();
                 frames -= FRAME_FREQ;
             }

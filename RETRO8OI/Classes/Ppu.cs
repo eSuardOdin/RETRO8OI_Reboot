@@ -117,8 +117,6 @@ public class Ppu : IMemoryMappedDevice
 
         return 0;
     }
-    // -- DEBUG --
-    public int VBlanks = 0;
 
     // To be handled by CPU
     public event EventHandler<bool> OamDmaEvent;
@@ -199,8 +197,6 @@ public class Ppu : IMemoryMappedDevice
                         if (LY >= 144)
                         {
                             Mode = 0x1; // Switch to VBlank
-                            Console.WriteLine($"VBLANK n°{VBlanks} requested with LY {LY}.\nSCX: {SCX}\nSCY: {SCY}");
-                            VBlanks++;
                             
                             // Write VBlank interrupt request flag
                             byte IF = Bus.Read(0xFF0F); 
