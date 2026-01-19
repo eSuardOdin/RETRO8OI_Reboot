@@ -56,14 +56,14 @@ public class Ppu : IMemoryMappedDevice
         }
     }
 
-    private ushort TilemapAddress
+    private ushort WindowTilemapAddress
     {
-        get => (LCDC & 0x40) == 0x40 ? (ushort)0x9800 : (ushort)0x9C00;
+        get => (LCDC & 0x40) == 0x40 ? (ushort)0x9C00 : (ushort)0x9800;
     }
 
     private ushort TileMapBaseAddress
     {
-        get => (LCDC & 0x10) == 0x10 ? (ushort)0x8800 : (ushort)0x8000;
+        get => (LCDC & 0x10) == 0x10 ? (ushort)0x8000 : (ushort)0x9000;
     }
 
     private ushort BGTileMapArea
@@ -321,20 +321,21 @@ public class Ppu : IMemoryMappedDevice
             // If first pixel of tile row, get tile
             if (x == 0 || pixX % 8 == 0)
             {
-                var tile = new byte[16]; 
-                byte tileIndex = Bus.Read( (ushort)(BGTileMapArea + (tileY * 0x20 + tileX)));
-                // Getting the offset in VRAM
-                int offsetVram = TileMapBaseAddress - 0x8000;
+                var tile = new byte[16];
+                // Get the tilemap index with suppressing VRAM offset (0x8000)
+                byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
                 // If $8800 mode (index is signed)
                 if (TileMapBaseAddress == 0x8800)
                 {
-                    sbyte index = (sbyte)tileIndex;   
-                    Array.Copy(Vram, Vram[offsetVram + index] * 0x10, tile, 0, 16);
+                    int offsetVram = TileMapBaseAddress - 0x8000;
+                    sbyte index = (sbyte)tileIndex;
+                    // Because base
+                    Array.Copy(Vram, (offsetVram + index) * 0x10, tile, 0, 16);
                 }
                 // Else if $8000 mode
                 else
                 {
-                    Array.Copy(Vram, Vram[offsetVram + tileIndex] * 0x10, tile, 0, 16);
+                    Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
                 }
                 hi = tile[(row * 2)+1];
                 lo = tile[(row * 2)];
