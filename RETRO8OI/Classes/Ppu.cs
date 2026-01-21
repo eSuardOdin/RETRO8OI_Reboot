@@ -214,7 +214,6 @@ public class Ppu : IMemoryMappedDevice
                             // Write VBlank interrupt request flag
                             byte IF = Bus.Read(0xFF0F); 
                             Bus.Write(0xFF0F, (byte)(IF | 0x1));
-                            Render();
                         }
                         else
                         {
@@ -230,6 +229,7 @@ public class Ppu : IMemoryMappedDevice
                         VerticalCyclesCount -= 456;
                         if (LY >= 153)
                         {
+                            Render();
                             Mode = 0x2; // Switch to OAM Scan
                             LY = 0;
                         }
@@ -242,6 +242,7 @@ public class Ppu : IMemoryMappedDevice
             VerticalCyclesCount = 0;
             LY = 0;
             STAT = (byte)(STAT & ~0x3);
+            FrameBuffer = new byte [Width * Height];
         }
     }
 
@@ -325,18 +326,19 @@ public class Ppu : IMemoryMappedDevice
                 // Get the tilemap index with suppressing VRAM offset (0x8000)
                 byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
                 // If $8800 mode (index is signed)
-                if (TileMapBaseAddress == 0x8800)
+                if (TileMapBaseAddress == 0x9000)
                 {
-                    int offsetVram = TileMapBaseAddress - 0x8000;
                     sbyte index = (sbyte)tileIndex;
+                    short trueIndex = (short)(index * 0x10);
                     // Because base
-                    Array.Copy(Vram, (offsetVram + index) * 0x10, tile, 0, 16);
+                    Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
                 }
                 // Else if $8000 mode
                 else
                 {
                     Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
                 }
+                
                 hi = tile[(row * 2)+1];
                 lo = tile[(row * 2)];
             }
@@ -433,11 +435,9 @@ public class Ppu : IMemoryMappedDevice
                     return;
                 case 0xFF42:    // SCY
                     SCY = data;
-                    Console.WriteLine($"{SCY}");
                     return;
                 case 0xFF43:    // SCX
                     SCX = data;
-                    Console.WriteLine($"{SCX}");
                     return;
                 case 0xFF4A:    // WY
                     WY = data;

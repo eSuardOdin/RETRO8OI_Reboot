@@ -97,9 +97,11 @@ void GetLineInBuffer(int line)
             var tile = new byte[16]; 
             int tile_index = tileY * 0x20 + tileX;
             tile_index += IsBGTileMapArea ? 0x40 : 0;
+            Console.WriteLine($"Index is {tile_index}");
             Array.Copy(Tiles, Tilemap[tile_index] * 0x10, tile, 0, 16);
             hi = tile[(row * 2)+1];
             lo = tile[(row * 2)];
+            Console.WriteLine($"New tile :\n\tHI: {hi:X2}\n\tLO: {lo:X2}");
         }
         
         // Get palette index
