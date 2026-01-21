@@ -389,7 +389,6 @@ public class Ppu : IMemoryMappedDevice
         // Write to OAM only if mode 0 or 1 (VBlank, HBlank)
         if (address >= 0xFE00 && address <= 0xFE9F && Mode < 2)
         {
-            //Console.WriteLine($"Writing [{data:X2}] to OAM [{address:X4}]");
             OAM[address - 0xFE00] =  data;
             return;
         }
@@ -415,16 +414,8 @@ public class Ppu : IMemoryMappedDevice
                     return;
                 case 0xFF40:    // LCDC
                     LCDC = data;
-                    Console.WriteLine($"Written ${data:X2} to LCDC");
-                    // if (!IsLcdPpuEnabled)
-                    // {
-                    //     VerticalCyclesCount = 0;
-                    //     LY = 0;
-                    //     Mode = 0;
-                    // }
                     return;
                 case 0xFF44:    // LY
-                    // LY IS READ ONLY
                     return;
                 case 0xFF45:    // LYC
                     LYC = data;
