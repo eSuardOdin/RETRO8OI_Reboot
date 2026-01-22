@@ -302,20 +302,22 @@ public class Ppu : IMemoryMappedDevice
     
     
     
-    /** Working in DISPLAY TEST project */
     private void GetLineInBuffer(int line)
     {
-        int posY = (SCY + line) % 0xFF;
+        // Check if the line to display is window or bg
+        bool isWindow = LY >= WY;
+        int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
         int tileY = posY / 8;
         int row = posY % 8;
         int posX, tileX, pixX;
         byte lo = 0;
         byte hi = 0;
         byte hi_b, lo_b;
-    
+        
+        
         for (int x = 0; x < 160; x++)
         {
-            posX = (SCX + x) % 0xFF;
+            posX = isWindow ? (WX - 7) + x : (SCX + x) % 0xFF;
             tileX = posX / 8;
             pixX = posX % 8;
         
@@ -323,21 +325,46 @@ public class Ppu : IMemoryMappedDevice
             if (x == 0 || pixX % 8 == 0)
             {
                 var tile = new byte[16];
-                // Get the tilemap index with suppressing VRAM offset (0x8000)
-                byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
-                // If $8800 mode (index is signed)
-                if (TileMapBaseAddress == 0x9000)
+                // If tile to display is Background tile
+                if (!isWindow)
                 {
-                    sbyte index = (sbyte)tileIndex;
-                    short trueIndex = (short)(index * 0x10);
-                    // Because base
-                    Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                    // Get the tilemap index with suppressing VRAM offset (0x8000)
+                    byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
+                    // If $8800 mode (index is signed)
+                    if (TileMapBaseAddress == 0x9000)
+                    {
+                        sbyte index = (sbyte)tileIndex;
+                        short trueIndex = (short)(index * 0x10);
+                        // Because base address is 0x9000, we add an offset of 0x1000
+                        Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                    }
+                    // Else if $8000 mode
+                    else
+                    {
+                        Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
+                    }
+                    
                 }
-                // Else if $8000 mode
+                // If tile is Window tile
                 else
                 {
-                    Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
+                    // Get the tilemap index with suppressing VRAM offset (0x8000)
+                    byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
+                    // If $8800 mode (index is signed)
+                    if (TileMapBaseAddress == 0x9000)
+                    {
+                        sbyte index = (sbyte)tileIndex;
+                        short trueIndex = (short)(index * 0x10);
+                        // Because base
+                        Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                    }
+                    // Else if $8000 mode
+                    else
+                    {
+                        Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
+                    }
                 }
+                
                 
                 hi = tile[(row * 2)+1];
                 lo = tile[(row * 2)];
@@ -352,7 +379,7 @@ public class Ppu : IMemoryMappedDevice
             FrameBuffer[line * Width + x] = pixIndex;
         }
     }
-    
+
     
     void Render()
     {
