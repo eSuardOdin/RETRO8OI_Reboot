@@ -150,7 +150,7 @@ public class Ppu : IMemoryMappedDevice
         }
 
 // Creating renderer and window
-        if (!SDL.CreateWindowAndRenderer("Display Test",Width, Height, 0, out Window, out Renderer))
+        if (!SDL.CreateWindowAndRenderer("RETRO 80I",Width, Height, 0, out Window, out Renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
