@@ -414,18 +414,21 @@ public class Ppu : IMemoryMappedDevice
                 // Set flag values
                 objInLine++;
                 bool isOverBG = (flags & 0x80) == 0;
-                bool isFlippedX = (flags & 0x40) == 0x40;
-                bool isFlippedY = (flags & 0x20) == 0x20;
+                bool isFlippedY = (flags & 0x40) == 0x40;
+                bool isFlippedX = (flags & 0x20) == 0x20;
                 byte objPalette = (flags & 0x10) == 0x10 ? OBP1 : OBP0;
                 // Framebuffer index
                 int startIndex = (line * 160 + objX);
-                // Get row of sprite to draw
-                int spriteRow = (line - objY) * 2;
-                // Draw
+                // Get row of sprite to draw (Invert if flipped)
+                int spriteRow = isFlippedY ? (spriteSize - 1 - (line - objY)) : (line - objY);
+                
+                int index = 0x8000 + (tileIndex * 0x10) + (spriteRow * 2);
+                byte lo = Vram[(tileIndex * 0x10) + (spriteRow * 2)];
+                byte hi = Vram[(tileIndex * 0x10) + (spriteRow * 2) + 1];
+                // Draw depending on X Flip
+                //int p = isFlippedX ? 0 : 7;
                 for (int xPix = 0; xPix < 8; xPix++)
                 {
-                    byte lo = Vram[(tileIndex * 0x10) + spriteRow];
-                    byte hi = Vram[(tileIndex * 0x10) + spriteRow + 1];
                     // Get palette index
                     byte hi_b = (byte)((hi >> (7 - xPix)) & 1);
                     byte lo_b = (byte)((lo >> (7 - xPix)) & 1);
