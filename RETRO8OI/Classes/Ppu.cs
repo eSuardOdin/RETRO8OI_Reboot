@@ -390,6 +390,10 @@ public class Ppu : IMemoryMappedDevice
 
     
     
+    /// <summary>
+    /// Put in framebuffer objects to display
+    /// </summary>
+    /// <param name="line"></param>
     private void BufferizeSprites(byte line)
     {
         // DMG can only display 10 sprites on a line
@@ -409,30 +413,32 @@ public class Ppu : IMemoryMappedDevice
             {
                 // Set flag values
                 objInLine++;
-                bool isOverBG = (flags & 0x80) == 0x80;
+                bool isOverBG = (flags & 0x80) == 0;
                 bool isFlippedX = (flags & 0x40) == 0x40;
                 bool isFlippedY = (flags & 0x20) == 0x20;
                 byte objPalette = (flags & 0x10) == 0x10 ? OBP1 : OBP0;
                 // Framebuffer index
                 int startIndex = (line * 160 + objX);
                 // Get row of sprite to draw
-                int spriteRow = line - objY;
-                int col = 0;
+                int spriteRow = (line - objY) * 2;
                 // Draw
-                for (int j = 0; j < 8; j++)
+                for (int xPix = 0; xPix < 8; xPix++)
                 {
-                    byte lo = Vram[((tileIndex + spriteRow) * 0x10) + col];
-                    byte hi = Vram[((tileIndex + spriteRow) * 0x10) + col + 1];
+                    byte lo = Vram[(tileIndex * 0x10) + spriteRow];
+                    byte hi = Vram[(tileIndex * 0x10) + spriteRow + 1];
                     // Get palette index
-                    byte hi_b = (byte)((hi >> (7 - col)) & 1);
-                    byte lo_b = (byte)((lo >> (7 - col)) & 1);
+                    byte hi_b = (byte)((hi >> (7 - xPix)) & 1);
+                    byte lo_b = (byte)((lo >> (7 - xPix)) & 1);
+                    
                     byte paletteIndex = (byte) (lo_b | (hi_b<<1));
-        
-                    // Get the color depending on the palette
-                    byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
-                    // Put in Framebuffer
-                    FrameBuffer[startIndex + j] = colorIndex;
-                    col++;
+                    // Check for priority
+                    if ((isOverBG && paletteIndex != 0) || (!isOverBG && paletteIndex == 0))
+                    {
+                        // Get the color depending on the palette
+                        byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+                        // Put in Framebuffer
+                        FrameBuffer[startIndex + xPix] = colorIndex;
+                    }
                 }
             }
 
