@@ -71,7 +71,7 @@ public class Ppu : IMemoryMappedDevice
         get => (LCDC & 0x8) == 0x8 ? (ushort)0x9C00 : (ushort)0x9800;
     }
 
-    private bool IsDoubleObjWidth
+    private bool IsObjEightBySixteen
     {
         get => (LCDC & 0x4) == 0x4;
     }
@@ -89,7 +89,7 @@ public class Ppu : IMemoryMappedDevice
     private byte SCX = 0;
     private byte WY = 0;
     private byte WX = 0;
-    private byte BGP = 0xFC;
+    private byte BGP = 0;
     private byte OBP0 = 0;
     private byte OBP1 = 0;
     private int VerticalCyclesCount = 0;
@@ -106,6 +106,7 @@ public class Ppu : IMemoryMappedDevice
     private int Width = 160;
     private int Height = 144;
     private byte[] FrameBuffer;
+    
     private IntPtr Renderer;
     private IntPtr Texture;
     private IntPtr Window;
@@ -193,8 +194,8 @@ public class Ppu : IMemoryMappedDevice
                 case 3: // Pixel draw
                     if (VerticalCyclesCount >= 172)
                     {
-                        // Display line
-                        GetLineInBuffer(LY);
+                        // Bufferize line to render
+                        BufferizeScanline(LY);
                         // Going to HBlank
                         Mode = 0x0;
                         VerticalCyclesCount -= 172;
@@ -302,7 +303,11 @@ public class Ppu : IMemoryMappedDevice
     
     
     
-    private void GetLineInBuffer(int line)
+    /// <summary>
+    /// Put background and window palette color indices of a line into the framebuffer
+    /// </summary>
+    /// <param name="line">The scanline occuring</param>
+    private void BufferizeBackgroundAndWindow(int line)
     {
         // Check if the line to display is window or bg
         bool isWindow = LY >= WY;
@@ -315,7 +320,7 @@ public class Ppu : IMemoryMappedDevice
         byte hi_b, lo_b;
         
         
-        for (int x = 0; x < 160; x++)
+        for (int x = 0; x < Width; x++)
         {
             posX = isWindow ? (WX - 7) + x : (SCX + x) % 0xFF;
             tileX = posX / 8;
@@ -373,13 +378,78 @@ public class Ppu : IMemoryMappedDevice
             // Get palette index
             hi_b = (byte)((hi >> (7 - pixX)) & 1);
             lo_b = (byte)((lo >> (7 - pixX)) & 1);
-            byte pixIndex = (byte) (lo_b | (hi_b<<1));
+            byte paletteIndex = (byte) (lo_b | (hi_b<<1));
         
+            // Get the color depending on the palette
+            byte colorIndex = (byte)((BGP & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+            
             // Put in Framebuffer
-            FrameBuffer[line * Width + x] = pixIndex;
+            FrameBuffer[line * Width + x] = colorIndex;
         }
     }
 
+    
+    
+    private void BufferizeSprites(byte line)
+    {
+        // DMG can only display 10 sprites on a line
+        int objInLine = 0;
+        int spriteSize = IsObjEightBySixteen ? 16 : 8;
+        // Check values in OAM, each object is 4 bytes long
+        for (int i = 0; i < (OAM.Length / 4); i += 4)
+        {
+            // Get the next OAM object
+            int objY = OAM[i] - 16;
+            int objX = OAM[i + 1] - 8;
+            int tileIndex = OAM[i + 2];
+            int flags  = OAM[i + 3];
+            
+            // Get the objects that appears on the line
+            if (line < (objY + spriteSize) && line >= objY)
+            {
+                // Set flag values
+                objInLine++;
+                bool isOverBG = (flags & 0x80) == 0x80;
+                bool isFlippedX = (flags & 0x40) == 0x40;
+                bool isFlippedY = (flags & 0x20) == 0x20;
+                byte objPalette = (flags & 0x10) == 0x10 ? OBP1 : OBP0;
+                // Framebuffer index
+                int startIndex = (line * 160 + objX);
+                // Get row of sprite to draw
+                int spriteRow = line - objY;
+                int col = 0;
+                // Draw
+                for (int j = 0; j < 8; j++)
+                {
+                    byte lo = Vram[((tileIndex + spriteRow) * 0x10) + col];
+                    byte hi = Vram[((tileIndex + spriteRow) * 0x10) + col + 1];
+                    // Get palette index
+                    byte hi_b = (byte)((hi >> (7 - col)) & 1);
+                    byte lo_b = (byte)((lo >> (7 - col)) & 1);
+                    byte paletteIndex = (byte) (lo_b | (hi_b<<1));
+        
+                    // Get the color depending on the palette
+                    byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+                    // Put in Framebuffer
+                    FrameBuffer[startIndex + j] = colorIndex;
+                    col++;
+                }
+            }
+
+            if (objInLine == 10)
+            {
+                return;
+            }
+        }
+        
+    }
+
+    private void BufferizeScanline(byte line)
+    {
+        BufferizeBackgroundAndWindow(line);
+        BufferizeSprites(line);
+    }
+    
     
     void Render()
     {
@@ -401,6 +471,7 @@ public class Ppu : IMemoryMappedDevice
         SDL.RenderClear(Renderer);
         SDL.RenderTexture(Renderer, Texture, nint.Zero, nint.Zero);
         SDL.RenderPresent(Renderer);
+        //throw new Exception();
     }
     
     

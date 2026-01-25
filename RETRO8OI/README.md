@@ -17,4 +17,9 @@
 
 
 # Todo 
-The Ppu will be implementing OAM and Vram so it's current mode will take care of what R/W to VRam/OAM would return -> To refactor.
+
+## Implementing OAM and object drawing
+
+### Refactoring existing
+- [ ] Check for `LCDC bit 0` which is bool `PPU.IsBackgroundAndWindowEnabled`, if unset, the window and background are printed white but objects still appear (if set)
+- 
