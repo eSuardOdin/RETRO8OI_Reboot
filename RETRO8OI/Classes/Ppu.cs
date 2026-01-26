@@ -426,12 +426,12 @@ public class Ppu : IMemoryMappedDevice
                 byte lo = Vram[(tileIndex * 0x10) + (spriteRow * 2)];
                 byte hi = Vram[(tileIndex * 0x10) + (spriteRow * 2) + 1];
                 // Draw depending on X Flip
-                //int p = isFlippedX ? 0 : 7;
+                int p = isFlippedX ? 7 : 0;
                 for (int xPix = 0; xPix < 8; xPix++)
                 {
                     // Get palette index
-                    byte hi_b = (byte)((hi >> (7 - xPix)) & 1);
-                    byte lo_b = (byte)((lo >> (7 - xPix)) & 1);
+                    byte hi_b = (byte)((hi >> (7 - p)) & 1);
+                    byte lo_b = (byte)((lo >> (7 - p)) & 1);
                     
                     byte paletteIndex = (byte) (lo_b | (hi_b<<1));
                     // Check for priority
@@ -442,7 +442,10 @@ public class Ppu : IMemoryMappedDevice
                         // Put in Framebuffer
                         FrameBuffer[startIndex + xPix] = colorIndex;
                     }
+                    
+                    p += isFlippedX ? -1 : 1;
                 }
+                
             }
 
             if (objInLine == 10)
