@@ -105,30 +105,13 @@ public class Ppu : IMemoryMappedDevice
     // SDL Stuff
     private int Width = 160;
     private int Height = 144;
+    private int Scale = 8;
     private byte[] FrameBuffer;
     
     private IntPtr Renderer;
     private IntPtr Texture;
     private IntPtr Window;
     
-    
-    
-    private uint GetColor(byte index)
-    {
-        switch ( index )
-        {
-            case 0b00:
-                return 0xFFE0F8A0;
-            case 0b01:
-                return 0xFF88C070;
-            case 0b10:
-                return 0xFF346856;
-            case 0b11:
-                return 0xFF081820;
-        }
-
-        return 0;
-    }
 
     // To be handled by CPU
     public event EventHandler<bool> OamDmaEvent;
@@ -151,14 +134,14 @@ public class Ppu : IMemoryMappedDevice
         }
 
 // Creating renderer and window
-        if (!SDL.CreateWindowAndRenderer("RETRO 80I",Width, Height, 0, out Window, out Renderer))
+        if (!SDL.CreateWindowAndRenderer("RETRO 80I",Width * Scale, Height * Scale, 0, out Window, out Renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
         }
 
 // Creating texture
-        Texture = SDL.CreateTexture(Renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Streaming, Width, Height);
+        Texture = SDL.CreateTexture(Renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Streaming, Width * Scale, Height * Scale);
     }
 
     protected virtual void OnOamDmaEvent(bool isStart)
@@ -483,7 +466,6 @@ public class Ppu : IMemoryMappedDevice
         SDL.RenderClear(Renderer);
         SDL.RenderTexture(Renderer, Texture, nint.Zero, nint.Zero);
         SDL.RenderPresent(Renderer);
-        //throw new Exception();
     }
     
     
