@@ -105,7 +105,7 @@ public class Ppu : IMemoryMappedDevice
     // SDL Stuff
     private int Width = 160;
     private int Height = 144;
-    private int Scale = 8;
+    private int Scale = 3;
     private byte[] FrameBuffer;
     
     private IntPtr Renderer;
@@ -133,14 +133,14 @@ public class Ppu : IMemoryMappedDevice
             return;
         }
 
-// Creating renderer and window
+        // Creating renderer and window
         if (!SDL.CreateWindowAndRenderer("RETRO 80I",Width * Scale, Height * Scale, 0, out Window, out Renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
         }
 
-// Creating texture
+        // Creating texture
         Texture = SDL.CreateTexture(Renderer, SDL.PixelFormat.ARGB8888, SDL.TextureAccess.Streaming, Width * Scale, Height * Scale);
     }
 
@@ -449,18 +449,32 @@ public class Ppu : IMemoryMappedDevice
     void Render()
     {
         // Get color values in array
-        uint[] pixels = new uint[Width * Height];
+        uint[] pixels = new uint[(Width * Scale) * (Height * Scale)];
         for (int i = 0; i < FrameBuffer.Length; i++)
         {
-            pixels[i] = BGPalette[FrameBuffer[i]];
+            // index = srcY * Width + srcX
+            int srcX = i % Width;
+            int srcY = i / Width;
+            
+            int destX = srcX * Scale;
+            int destY = srcY * Scale;
+            
+            for (int x = 0; x < Scale; x++)
+            {
+                for (int y = 0; y < Scale; y++)
+                {
+                    pixels[(destY + y) * Width * Scale + (destX+x)] = BGPalette[FrameBuffer[i]];
+                }
+            }
         }
+        
 
         unsafe
         {
             // Prevent garbage collector to move pixels[]
             fixed (uint* ptr = pixels)
             {
-                SDL.UpdateTexture(Texture, nint.Zero, (nint)ptr, Width * sizeof(uint));
+                SDL.UpdateTexture(Texture, nint.Zero, (nint)ptr, Width * Scale * sizeof(uint));
             }
         }
         SDL.RenderClear(Renderer);
