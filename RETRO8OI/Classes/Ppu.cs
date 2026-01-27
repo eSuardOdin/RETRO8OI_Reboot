@@ -125,14 +125,6 @@ public class Ppu : IMemoryMappedDevice
         Mode = 0;
         FrameBuffer = new byte [Width * Height];
         
-        // SDL INIT
-        // Init SDL
-        if (!SDL.Init(SDL.InitFlags.Video))
-        {
-            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
-            return;
-        }
-
         // Creating renderer and window
         if (!SDL.CreateWindowAndRenderer("RETRO 80I",Width * Scale, Height * Scale, 0, out Window, out Renderer))
         {

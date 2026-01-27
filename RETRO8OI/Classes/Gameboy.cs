@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using SDL3;
 using System.Diagnostics;
 using RETRO8OI.Exceptions;
 
@@ -16,8 +16,6 @@ public class Gameboy
     public int Cycles { get; set; }
     public MemoryBus Bus { get; private set; }
     public Ram Ram { get; private set; }
-    //public OAM Oam { get; private set; }
-    //public LCD Lcd { get; private set; }
     public InterruptRegisters InterruptRegisters { get; private set; }
     public Cpu Cpu { get; private set; }
     public Ppu Ppu { get; private set; }
@@ -31,6 +29,18 @@ public class Gameboy
 
     public Gameboy()
     {
+        
+        // SDL INIT
+        // Init SDL
+        if (!SDL.Init(SDL.InitFlags.Video))
+        {
+            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
+            return;
+        }
+
+        
+        
+        
         // Init of GB
         Bus = new MemoryBus();
         Ram = new Ram();
@@ -45,14 +55,11 @@ public class Gameboy
         
         
         Cpu = new Cpu(Bus, Ppu);
-        //Display = new Display(Bus, Ram);
         Cycles = 0;
         
         // Binding Memory devices to BUS
         Bus.Map(Ram);
         Bus.Map(InterruptRegisters);
-        //Bus.Map(Oam);
-        //Bus.Map(Lcd);
         Bus.Map(Ppu);
         Bus.Map(Apu);
         Bus.Map(Joypad);
