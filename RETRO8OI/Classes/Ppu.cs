@@ -593,6 +593,15 @@ public class Ppu : IMemoryMappedDevice
                (address >= 0xFF40 && address <= 0xFF4B);
     }
 
-
+    
+    public void HandleSDLEvent(SDL3.SDL.Event e)
+    {
+        if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+        {
+            // Destroy window and renderer
+            SDL.DestroyRenderer(Renderer);
+            SDL.DestroyWindow(Renderer);
+        }
+    }
 
 }

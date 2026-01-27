@@ -37,8 +37,6 @@ public class Gameboy
             SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
             return;
         }
-
-        
         
         
         // Init of GB
@@ -100,6 +98,17 @@ public class Gameboy
         
         while (_runningGame)
         {
+            
+            // SDL Events dispatch
+            while (SDL.PollEvent(out var e))
+            {
+                Ppu.HandleSDLEvent(e);
+                if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+                {
+                    // Destroy window and renderer
+                    _runningGame = false;
+                }
+            }
             // Get true start
             var execStart = sw.Elapsed;
             // Execute the number of M-Cycles in a frame (MAIN EXEC LOOP)
@@ -139,9 +148,10 @@ public class Gameboy
                 sw.Restart();
                 frames -= FRAME_FREQ;
             }
-
-
         }
+        
+        SDL.Quit();
     }
+    
 
 }
