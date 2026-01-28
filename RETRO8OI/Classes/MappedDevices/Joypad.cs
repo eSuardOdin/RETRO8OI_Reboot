@@ -126,7 +126,7 @@ public class Joypad : IMemoryMappedDevice
                 }
             }
             // If Buttons Mask
-            else if ((Pressed & 0x20) == 0x20)
+            if ((Pressed & 0x20) == 0x20)
             {
                 if ((SDL.EventType)e.Type == SDL.EventType.KeyDown)
                 {
