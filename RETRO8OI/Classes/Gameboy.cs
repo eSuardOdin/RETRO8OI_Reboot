@@ -87,7 +87,7 @@ public class Gameboy
         
         _runningGame = true;
         // Get a pointer to SDL Key State
-        var keys = SDL.GetKeyboardState(out int numkeys);
+        //var keys = SDL.GetKeyboardState(out int numkeys);
         
         // Get timespan after instructions with stopwatch
         Stopwatch sw = new();
@@ -102,24 +102,24 @@ public class Gameboy
         while (_runningGame)
         {
             
-            // SDL Events dispatch (to refactor)
-            while (SDL.PollEvent(out var e))
-            {
-                Ppu.HandleSDLEvent(e);
-                //Joypad.HandleSDLEvent(e);
-                if ((SDL.EventType)e.Type == SDL.EventType.Quit)
-                {
-                    // Destroy window and renderer
-                    _runningGame = false;
-                }
-            }
             // Get true start
             var execStart = sw.Elapsed;
             // Execute the number of M-Cycles in a frame (MAIN EXEC LOOP)
             while (frame_cycles < CYCLES_PER_FRAME)
             {
+                // SDL Events dispatch (to refactor)
+                while (SDL.PollEvent(out var e))
+                {
+                    Ppu.HandleSDLEvent(e);
+                    Joypad.HandleSDLEvent(e);
+                    if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+                    {
+                        // Destroy window and renderer
+                        _runningGame = false;
+                    }
+                }
                 // Update the keyboard state
-                SDL.PumpEvents();
+                //SDL.PumpEvents();
                 cycles = Cpu.ExecuteNextInstruction();
                 frame_cycles += cycles;
                 Ppu.Update(cycles);
@@ -128,7 +128,7 @@ public class Gameboy
                     Ppu.OamDmaUpdate(cycles);
                 }
                 Timer.UpdateTimers(cycles);
-                Joypad.Update(keys);
+                Joypad.Update();
                 Cpu.HandleInterrupts();
             }
             
