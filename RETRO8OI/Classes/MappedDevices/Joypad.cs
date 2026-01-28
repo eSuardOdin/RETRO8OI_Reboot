@@ -24,20 +24,7 @@ public class Joypad : IMemoryMappedDevice
         Bus = bus;
     }
 
-
-
-    public void Update()
-    {
-        // Write joypad interrupt if any. I filter them but that does not
-        // simulate the bounce on true hardware. See if refactoring needed.
-        if (IsInterruptRequested)
-        {
-            IsInterruptRequested = false;
-            byte IF = Bus.Read(0xFF0F); 
-            Bus.Write(0xFF0F, (byte)(IF | 0x10));
-        }
-        
-    }
+    
     
     
     
@@ -128,7 +115,9 @@ public class Joypad : IMemoryMappedDevice
                 {
                     // If Pad = 1101 and Pressed = 0001, Pad = 1100
                     Pad &= (byte)~(Pressed & 0xF);
-                    IsInterruptRequested = true;
+                    // Interrupt request
+                    byte IF = Bus.Read(0xFF0F); 
+                    Bus.Write(0xFF0F, (byte)(IF | 0x10));
                 }
                 else
                 {
@@ -142,7 +131,9 @@ public class Joypad : IMemoryMappedDevice
                 if ((SDL.EventType)e.Type == SDL.EventType.KeyDown)
                 {
                     Buttons &= (byte)~(Pressed & 0xF);
-                    IsInterruptRequested = true;
+                    // Interrupt request
+                    byte IF = Bus.Read(0xFF0F); 
+                    Bus.Write(0xFF0F, (byte)(IF | 0x10));
                 }
                 else
                 {

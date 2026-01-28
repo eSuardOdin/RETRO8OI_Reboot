@@ -97,9 +97,7 @@ public class Cpu
             IMEEnable = false;
         }
         // Get the current opcode
-        //Console.WriteLine($"PC is {PC:X4}");
         byte opcode = Bus.Read(PC++);
-        //Console.WriteLine($"Opcode is now {opcode:X4}");
         // If halt bug
         if (HaltBug)
         {
@@ -1350,7 +1348,7 @@ public class Cpu
     {
         byte opcode = Bus.Read(PC++); 
         // Switch OPCODE
-        switch (Bus.Read(PC++))
+        switch ((opcode & 0xF0) >> 4)
         {
             case 0x0:
                 switch (opcode & 0x0F)
