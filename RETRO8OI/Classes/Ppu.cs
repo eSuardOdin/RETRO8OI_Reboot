@@ -285,7 +285,7 @@ public class Ppu : IMemoryMappedDevice
     private void BufferizeBackgroundAndWindow(int line)
     {
         // Check if the line to display is window or bg
-        bool isWindow = LY >= WY;
+        bool isWindow = (LY >= WY && IsWindowEnabled);
         int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
         int tileY = posY / 8;
         int row = posY % 8;
@@ -326,7 +326,7 @@ public class Ppu : IMemoryMappedDevice
                     
                 }
                 // If tile is Window tile
-                else
+                else if(IsWindowEnabled)
                 {
                     // Get the tilemap index with suppressing VRAM offset (0x8000)
                     byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
@@ -511,6 +511,15 @@ public class Ppu : IMemoryMappedDevice
                     OBP1 = data;
                     return;
                 case 0xFF40:    // LCDC
+                    // 00100000 -> WINON
+                    // if ((data & 0x20) == 0x20)
+                    // {
+                    //     Console.WriteLine("LCDC put window ON");
+                    // }
+                    // else
+                    // {
+                    //     Console.WriteLine("LCDC put window OFF");
+                    // }
                     LCDC = data;
                     return;
                 case 0xFF44:    // LY

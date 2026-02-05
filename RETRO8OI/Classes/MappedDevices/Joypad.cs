@@ -36,15 +36,13 @@ public class Joypad : IMemoryMappedDevice
 
     public byte Read(ushort address)
     { 
-        if (IsPadFlag)
-        {
-            Register = (byte)(Register & 0xF0 | Pad & 0xF);
-            //Console.WriteLine($"DPAD: {Register:B8}");
-        }
         if (IsButtonsFlag)
         {
             Register = (byte)(Register & 0xF0 | Buttons & 0xF);
-            //Console.WriteLine($"BUTTONS: {Register:B8}");
+        }
+        if (IsPadFlag)
+        {
+            Register = (byte)(Register & 0xF0 | Pad & 0xF);
         }
 
         if (!IsPadFlag && !IsButtonsFlag)

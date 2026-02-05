@@ -975,7 +975,14 @@ public class Cpu
                         byte lo = Bus.Read(PC);
                         byte hi = Bus.Read((ushort)(PC + 1));
                         PC += 2;
-                        A = Bus.Read((ushort)( (hi << 8) | lo) );
+
+                        ushort address = (ushort)((hi << 8) | lo);
+                        A = Bus.Read(address );
+                        // DEBUG
+                        //if (((hi << 8) | lo) == 0xC002 && A == 0x80)
+                        //{
+                        //    Console.WriteLine("Input pressed tested");
+                        //}
                         return 16;
                     case 0xB:   // EI
                         IMEEnable = true;
