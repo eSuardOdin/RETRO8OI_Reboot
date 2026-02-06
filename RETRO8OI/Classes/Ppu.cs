@@ -566,6 +566,12 @@ public class Ppu : IMemoryMappedDevice
         {
             switch (address)
             {
+                case 0xFF47:
+                    return BGP;
+                case 0xFF48:
+                    return OBP0;
+                case 0xFF49:
+                    return OBP1;
                 case 0xFF40:
                     //Console.WriteLine($"Reading LCDC [{address:X4}]");
                     return LCDC;
