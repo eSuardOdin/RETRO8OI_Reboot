@@ -22,7 +22,6 @@ public class Gameboy
     public Apu Apu { get; private set; }
     public Timer Timer { get; private set; }
     public Cartridge? Cartridge { get; private set; }
-    public Display Display { get; private set; }
     public Joypad Joypad { get; private set; }
     public Serial Serial { get; private set; }
     
@@ -60,6 +59,7 @@ public class Gameboy
         Bus.Map(InterruptRegisters);
         Bus.Map(Ppu);
         Bus.Map(Apu);
+        Bus.Map(Timer);
         Bus.Map(Joypad);
         Bus.Map(Serial);
     }

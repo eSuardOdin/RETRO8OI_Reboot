@@ -232,7 +232,7 @@ public class Ppu : IMemoryMappedDevice
             OamDmaCyclesDone++;
             OamDmaAddr++;
             // Check if OAM DMA done
-            if (OamDmaCyclesDone == OAM.Length - 1)
+            if (OamDmaCyclesDone >= OAM.Length)
             {
                 // Event to signal OAM DMA ended
                 OnOamDmaEvent(false);
