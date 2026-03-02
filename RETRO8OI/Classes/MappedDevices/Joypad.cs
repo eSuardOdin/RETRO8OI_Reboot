@@ -35,7 +35,7 @@ public class Joypad : IMemoryMappedDevice
     }
 
     public byte Read(ushort address)
-    { 
+    {
         if (IsButtonsFlag)
         {
             Register = (byte)(Register & 0xF0 | Buttons & 0xF);

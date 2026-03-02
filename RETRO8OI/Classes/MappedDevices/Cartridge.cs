@@ -100,6 +100,7 @@ public struct Header
 public class Cartridge : IMemoryMappedDevice
 {
     public String Filename { get; private set; }
+    public String Title { get; private set; }
     private Header _header;
     public byte[] Rom { get; private set; }
     public byte[]? Ram { get; private set; }
@@ -112,6 +113,9 @@ public class Cartridge : IMemoryMappedDevice
         Rom = File.ReadAllBytes(filename);
         Filename = Path.GetFileName(filename);
         FillHeader();
+        //DEBUG
+        Title = System.Text.Encoding.ASCII.GetString(_header.Title).Substring(0, 4);
+        
         ComputeHeaderChecksum();
         // Check if battery present
         CheckHasBattery();

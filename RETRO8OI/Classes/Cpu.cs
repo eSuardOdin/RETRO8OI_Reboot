@@ -11,6 +11,7 @@ public class Cpu
     
     public MemoryBus Bus { get; private set; }
 
+    public bool[] ExecutedDebug;
     private Ppu Ppu;
     // Registers
     private byte _f; // Backing field for flag reg
@@ -61,6 +62,8 @@ public class Cpu
     // Constructor
     public Cpu(MemoryBus bus, Ppu ppu)
     {
+        ExecutedDebug = new bool[512];
+        
         IsOamDma = false;
         Bus = bus;
         // Boot ROM exit status
@@ -98,13 +101,29 @@ public class Cpu
         }
         // Get the current opcode
         byte opcode = Bus.Read(PC++);
+        // DEBUG ARRAY
+        ExecutedDebug[opcode] = true;
+        
         // If halt bug
         if (HaltBug)
         {
             PC--;
             HaltBug = false;
         }
+
+        // if ((opcode == 0x4F) && (PC == 0x29D5))
+        // {
+        //     Console.WriteLine($"Il y a {A:b8} dans le registre A.");
+        //     if (A != 0)
+        //     {
+        //         Console.WriteLine("Bouton appuyé !");
+        //     }
+        // }
         
+        // if ((opcode == 0xC9) && (PC == 0x29E3))
+        // {
+        //     Console.WriteLine($"Return from func (getInputs ?)");
+        // }
         
         int cycles = 0;
         // --- Decode ---
@@ -1310,9 +1329,10 @@ public class Cpu
     private ushort POP()
     {
         byte lo = Bus.Read(SP);
-        byte hi = Bus.Read((ushort)(SP + 1));
-        SP += 2;
-        return (ushort)(hi << 8 | lo);
+        SP += 1;
+        byte hi = Bus.Read(SP);
+        SP += 1;
+        return (ushort)((hi << 8) | lo);
     }
 
     /// <summary>
@@ -1329,7 +1349,7 @@ public class Cpu
     
     private void HALT()
     {
-        if (IME)
+        /*if (IME)
         {
             Halted = true;
             PC--;   // To stay on HALT instruction
@@ -1346,14 +1366,27 @@ public class Cpu
             {
                 Halted = true;
             }
+        }*/
+        if (!IME) {
+            byte IE = Bus.Read(0xFFFF);
+            byte IF = Bus.Read(0xFF0F);
+            if ((IE & IF & 0x1F) == 0) {
+                Halted = true;
+                PC--;
+            } else {
+                HaltBug = true;
+            }
         }
     }
+    
     
     
     // ---- Prefix OPCODES ----
     private int PREFIX()
     {
-        byte opcode = Bus.Read(PC++); 
+        byte opcode = Bus.Read(PC++);
+        // DEBUG EXECUTE
+        ExecutedDebug[opcode + 0xFF] = true;
         // Switch OPCODE
         switch ((opcode & 0xF0) >> 4)
         {
@@ -2371,7 +2404,7 @@ public class Cpu
     {
         FlagN = false;
         FlagH = true;
-        FlagZ = (registerVal & index) == index;
+        FlagZ = (registerVal & index) == 0;
     }
     
     /// <summary>

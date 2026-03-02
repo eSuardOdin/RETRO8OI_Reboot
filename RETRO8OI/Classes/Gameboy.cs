@@ -152,6 +152,44 @@ public class Gameboy
         }
         
         SDL.Quit();
+        
+        // Executed DEBUG
+        string execDebugPath = $"/home/wan/repos/emu/{Path.GetFileName(Cartridge.Title)}.executed";
+        //File.Open(execDebugPath, FileMode.OpenOrCreate).Dispose();
+        File.Create(execDebugPath).Dispose();
+        using(StreamWriter logger = new StreamWriter(execDebugPath))
+        {
+            //logger.WriteLine(Cartridge.Filename);
+            for (int i = 0; i < 512; i++)
+            {
+                
+                    
+                    if (i <= 0xFF)
+                    {
+                        if (Cpu.ExecutedDebug[i])
+                        {
+                            logger.WriteLine($"{i:X2} -T");
+                        }
+                        else
+                        {
+                            logger.WriteLine($"{i:X2} -F");
+                        }
+                    }
+                    else
+                    {
+                        //logger.WriteLine($"{i-0xFF:X2}+");
+                        if (Cpu.ExecutedDebug[i])
+                        {
+                            logger.WriteLine($"{i-0xFF:X2}+ -T");
+                        }
+                        else
+                        {
+                            logger.WriteLine($"{i-0xFF:X2}+ -F");
+                        }
+                    }
+                
+            }
+        }
     }
     
 
