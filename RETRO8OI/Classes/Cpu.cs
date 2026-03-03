@@ -100,7 +100,7 @@ public class Cpu
             IMEEnable = false;
         }
         // Get the current opcode
-        byte opcode = Bus.Read(PC++);
+        byte opcode = ReadBus(PC++);
         // DEBUG ARRAY
         ExecutedDebug[opcode] = true;
         
@@ -135,11 +135,11 @@ public class Cpu
                     case 0x0:   // NOP
                         return 4;
                     case 0x1:   // LD BC,n16
-                        BC = (ushort)(Bus.Read((ushort)(PC+1)) << 8 | Bus.Read(PC));
+                        BC = (ushort)(ReadBus((ushort)(PC+1)) << 8 | ReadBus(PC));
                         PC += 2;
                         return 12;
                     case 0x2:   //LD [BC], A
-                        Bus.Write(BC, A);
+                        WriteBus(BC, A);
                         return 8;
                     case 0x3:   // INC BC
                         BC++;
@@ -151,7 +151,7 @@ public class Cpu
                         B = DEC(B);
                         return 4;
                     case 0x6:   // LD B, n8
-                        B = Bus.Read(PC++);
+                        B = ReadBus(PC++);
                         return 8;
                     case 0x7:   // RLCA : Rotate left circular
                         FlagZ = false;
@@ -163,14 +163,14 @@ public class Cpu
                         A = (byte)((A << 1) | lo);
                         return 4;
                     case 0x8:   // LD [a16] SP
-                        ushort address = (ushort)(Bus.Read((ushort)(PC + 1)) << 8 | Bus.Read(PC));
-                        Bus.Write(address, (byte)(SP & 0xFF));
-                        Bus.Write((ushort)(address+1), (byte)((SP >> 8) & 0xFF));
+                        ushort address = (ushort)(ReadBus((ushort)(PC + 1)) << 8 | ReadBus(PC));
+                        WriteBus(address, (byte)(SP & 0xFF));
+                        WriteBus((ushort)(address+1), (byte)((SP >> 8) & 0xFF));
                         return 20;
                     case 0x9:   // ADD HL, BC
                         return HLADD(BC);
                     case 0xA:   // LD A, [BC]
-                        A = Bus.Read(BC);
+                        A = ReadBus(BC);
                         return 8;
                     case 0xB:   // DEC BC
                         BC--;
@@ -182,7 +182,7 @@ public class Cpu
                         C = DEC(C);
                         return 4;
                     case 0xE:   // LD C, n8
-                        C = Bus.Read(PC++);
+                        C = ReadBus(PC++);
                         return 8;
                     case 0xF:   // RRCA : Rotate left circular
                         FlagZ = false;
@@ -203,11 +203,11 @@ public class Cpu
                     case 0x0:   // STOP n8
                         throw new NotImplementedException($"Instruction [{opcode}] not implemented.");
                     case 0x1:   // LD DE, n16
-                        DE = (ushort)(Bus.Read((ushort)(PC+1)) << 8 | Bus.Read(PC));
+                        DE = (ushort)(ReadBus((ushort)(PC+1)) << 8 | ReadBus(PC));
                         PC += 2;
                         return 12;
                     case 0x2:   // LD [DE], A
-                        Bus.Write(DE, A);
+                        WriteBus(DE, A);
                         return 8;
                     case 0x3:   // INC DE
                         DE++;
@@ -219,7 +219,7 @@ public class Cpu
                         D = DEC(D);
                         return 4;
                     case 0x6:   // LD D, n8
-                        D = Bus.Read(PC++);
+                        D = ReadBus(PC++);
                         return 8;
                     case 0x7:   // RLA
                         // Get carry bit
@@ -236,7 +236,7 @@ public class Cpu
                     case 0x9:   // ADD HL, DE
                         return HLADD(DE);
                     case 0xA:   // LD A, [DE]
-                        A = Bus.Read(DE);
+                        A = ReadBus(DE);
                         return 8;
                     case 0xB:   // DEC DE
                         DE--;
@@ -248,7 +248,7 @@ public class Cpu
                         E = DEC(E);
                         return 4;
                     case 0xE:   // LD E, n8
-                        E = Bus.Read(PC++);
+                        E = ReadBus(PC++);
                         return 8;
                     case 0xF:   // RRA
                         // Get carry bit
@@ -270,11 +270,11 @@ public class Cpu
                     case 0x0:   // JR NZ, e8
                         return JR(!FlagZ);
                     case 0x1:   // LD HL, n16
-                        HL = (ushort)(Bus.Read((ushort)(PC+1)) << 8 | Bus.Read(PC));
+                        HL = (ushort)(ReadBus((ushort)(PC+1)) << 8 | ReadBus(PC));
                         PC += 2;
                         return 12;
                     case 0x2:   // LD [HL+], A
-                        Bus.Write(HL, A);
+                        WriteBus(HL, A);
                         HL++;
                         return 8;
                     case 0x3:   // INC HL
@@ -287,7 +287,7 @@ public class Cpu
                         H = DEC(H);
                         return 4;
                     case 0x6:   //LD H, n8
-                        H = Bus.Read(PC++);
+                        H = ReadBus(PC++);
                         return 8;
                     case 0x7:   // DAA
                         return DAA();
@@ -296,7 +296,7 @@ public class Cpu
                     case 0x9:   // ADD HL, HL
                         return HLADD(HL);
                     case 0xA:   // LD A, [HL+]
-                        A = Bus.Read(HL++);
+                        A = ReadBus(HL++);
                         return 8;
                     case 0xB:   // DEC HL
                         HL--;
@@ -308,7 +308,7 @@ public class Cpu
                         L = DEC(L);
                         return 4;
                     case 0xE:   // LD L, n8
-                        L = Bus.Read(PC++);
+                        L = ReadBus(PC++);
                         return 8;
                     case 0xF:   // CPL
                         A = (byte)~A;
@@ -325,24 +325,24 @@ public class Cpu
                     case 0x0:   // JR NC, e8
                         return JR(!FlagC);
                     case 0x1:   // LD SP, n16
-                        SP = (ushort)(Bus.Read((ushort)(PC+1)) << 8 | Bus.Read(PC));
+                        SP = (ushort)(ReadBus((ushort)(PC+1)) << 8 | ReadBus(PC));
                         PC += 2;
                         return 12;
                     case 0x2:   // LD [HL-], A
-                        Bus.Write(HL, A);
+                        WriteBus(HL, A);
                         HL--;
                         return 8;
                     case 0x3:   // INC SP
                         SP++;
                         return 8;
                     case 0x4:   // INC [HL]
-                        Bus.Write(HL, INC(Bus.Read(HL)));
+                        WriteBus(HL, INC(ReadBus(HL)));
                         return 12;
                     case 0x5:   // DEC [HL]
-                        Bus.Write(HL, DEC(Bus.Read(HL)));
+                        WriteBus(HL, DEC(ReadBus(HL)));
                         return 12;
                     case 0x6:   // LD [HL], n8
-                        Bus.Write(HL, Bus.Read(PC++));
+                        WriteBus(HL, ReadBus(PC++));
                         return 12;
                     case 0x7:   // SCF
                         FlagC = true;
@@ -354,7 +354,7 @@ public class Cpu
                     case 0x9:   // ADD HL, SP
                         return HLADD(SP);
                     case 0xA:   // LD A, [HL-]
-                        A = Bus.Read(HL--);
+                        A = ReadBus(HL--);
                         return 8;
                     case 0xB:   // DEC SP
                         SP--;
@@ -366,7 +366,7 @@ public class Cpu
                         A = DEC(A);
                         return 4;
                     case 0xE:   // LD A, n8
-                        A = Bus.Read(PC++);
+                        A = ReadBus(PC++);
                         return 8;
                     case 0xF:   // CCF
                         FlagC = !FlagC;
@@ -398,7 +398,7 @@ public class Cpu
                         B = L;
                         return 4;
                     case 0x6:   // LD B, [HL]
-                        B = Bus.Read(HL);
+                        B = ReadBus(HL);
                         return 8;
                     case 0x7:   // LD B, A
                         B = A;
@@ -421,7 +421,7 @@ public class Cpu
                         C = L;
                         return 4;
                     case 0xE:   // LD C, [HL]
-                        C = Bus.Read(HL);
+                        C = ReadBus(HL);
                         return 8;
                     case 0xF: // LD C, A
                         C = A;
@@ -451,7 +451,7 @@ public class Cpu
                         D = L;
                         return 4;
                     case 0x6:   // LD D, [HL]
-                        D = Bus.Read(HL);
+                        D = ReadBus(HL);
                         return 8;
                     case 0x7:   // LD D, A
                         D = A;
@@ -474,7 +474,7 @@ public class Cpu
                         E = L;
                         return 4;
                     case 0xE:   // LD E, [HL]
-                        E = Bus.Read(HL);
+                        E = ReadBus(HL);
                         return 8;
                     case 0xF: // LD E, A
                         E = A;
@@ -504,7 +504,7 @@ public class Cpu
                         H = L;
                         return 4;
                     case 0x6:   // LD H, [HL]
-                        H = Bus.Read(HL);
+                        H = ReadBus(HL);
                         return 8;
                     case 0x7:   // LD H, A
                         H = A;
@@ -527,7 +527,7 @@ public class Cpu
                     case 0xD:   // LD L, L
                         return 4;
                     case 0xE:   // LD L, [HL]
-                        L = Bus.Read(HL);
+                        L = ReadBus(HL);
                         return 8;
                     case 0xF: // LD L, A
                         L = A;
@@ -540,28 +540,28 @@ public class Cpu
                 switch (opcode & 0x0F)
                 {
                     case 0x0:   // LD [HL], B
-                        Bus.Write(HL, B);
+                        WriteBus(HL, B);
                         return 8;
                     case 0x1:   // LD [HL], C
-                        Bus.Write(HL, C);
+                        WriteBus(HL, C);
                         return 8;
                     case 0x2:   // LD [HL], D
-                        Bus.Write(HL, D);
+                        WriteBus(HL, D);
                         return 8;
                     case 0x3:   // LD [HL], E
-                        Bus.Write(HL, E);
+                        WriteBus(HL, E);
                         return 8;
                     case 0x4:   // LD [HL], H
-                        Bus.Write(HL, H);
+                        WriteBus(HL, H);
                         return 8;
                     case 0x5:   // LD [HL], L
-                        Bus.Write(HL, L);
+                        WriteBus(HL, L);
                         return 8;
                     case 0x6:   // HALT
                         HALT();
                         return 4;
                     case 0x7:   // LD [HL], A
-                        Bus.Write(HL, A);
+                        WriteBus(HL, A);
                         return 8;
                     case 0x8:   // LD A, B
                         A = B;
@@ -582,7 +582,7 @@ public class Cpu
                         A = L;
                         return 4;
                     case 0xE:   // LD A, [HL]
-                        A = Bus.Read(HL);
+                        A = ReadBus(HL);
                         return 8;
                     case 0xF: // LD A, A
                         return 4;
@@ -612,7 +612,7 @@ public class Cpu
                         ADD(L);
                         return 4;
                     case 0x6:   // ADD A, [HL]
-                        ADD(Bus.Read(HL));
+                        ADD(ReadBus(HL));
                         return 8;
                     case 0x7:   // ADD A, A
                         ADD(A);
@@ -636,7 +636,7 @@ public class Cpu
                         ADC(L);
                         return 4;
                     case 0xE:   // ADC A, [HL]
-                        ADC(Bus.Read(HL));
+                        ADC(ReadBus(HL));
                         return 8;
                     case 0xF:   // ADC A, A
                         ADC(A);
@@ -667,7 +667,7 @@ public class Cpu
                         SUB(L);
                         return 4;
                     case 0x6:   // SUB A, [HL]
-                        SUB(Bus.Read(HL));
+                        SUB(ReadBus(HL));
                         return 8;
                     case 0x7:   // SUB A, A
                         SUB(A);
@@ -691,7 +691,7 @@ public class Cpu
                         SBC(L);
                         return 4;
                     case 0xE:   // SBC A, [HL]
-                        SBC(Bus.Read(HL));
+                        SBC(ReadBus(HL));
                         return 8;
                     case 0xF:   // SBC A, A
                         SBC(A);
@@ -722,7 +722,7 @@ public class Cpu
                         AND(L);
                         return 4;
                     case 0x6:   // AND A, [HL]
-                        AND(Bus.Read(HL));
+                        AND(ReadBus(HL));
                         return 8;
                     case 0x7:   // AND A, A
                         AND(A);
@@ -746,7 +746,7 @@ public class Cpu
                         XOR(L);
                         return 4;
                     case 0xE:   // XOR A, [HL]
-                        XOR(Bus.Read(HL));
+                        XOR(ReadBus(HL));
                         return 8;
                     case 0xF:   // XOR A, A
                         XOR(A);
@@ -777,7 +777,7 @@ public class Cpu
                         OR(L);
                         return 4;
                     case 0x6:   // OR A, [HL]
-                        OR(Bus.Read(HL));
+                        OR(ReadBus(HL));
                         return 8;
                     case 0x7:   // OR A, A
                         OR(A);
@@ -801,7 +801,7 @@ public class Cpu
                         CP(L);
                         return 4;
                     case 0xE:   // CP A, [HL]
-                        CP(Bus.Read(HL));
+                        CP(ReadBus(HL));
                         return 8;
                     case 0xF:   // CP A, A
                         CP(A);
@@ -828,7 +828,7 @@ public class Cpu
                         PUSH(BC);
                         return 16;
                     case 0x6:   // ADD A, n8
-                        ADD(Bus.Read(PC++));
+                        ADD(ReadBus(PC++));
                         return 8;
                     case 0x7:   // RST 0X00
                         return RST(0x0000);
@@ -845,7 +845,7 @@ public class Cpu
                     case 0xD:   // CALL a16
                         return CALL(false, true);
                     case 0xE:   // ADC A, n8
-                        ADC(Bus.Read(PC++));
+                        ADC(ReadBus(PC++));
                         return 8;
                     case 0xF:   // RST 0x08
                         return RST(0x0008);
@@ -871,7 +871,7 @@ public class Cpu
                         PUSH(DE);
                         return 16;
                     case 0x6:   // SUB A, n8
-                        SUB(Bus.Read(PC++));
+                        SUB(ReadBus(PC++));
                         return 8;
                     case 0x7:   // RST 0X10
                         return RST(0x0010);
@@ -890,7 +890,7 @@ public class Cpu
                     case 0xD:   // ILLEGAL
                         throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xE:   // SBC A, n8
-                        SBC(Bus.Read(PC++));
+                        SBC(ReadBus(PC++));
                         return 8;
                     case 0xF:   // RST 0X18
                         return RST(0x0018);
@@ -902,12 +902,12 @@ public class Cpu
                 switch (opcode & 0x0F)
                 {
                     case 0x0:   // LDH [a8] A
-                        return LDH(true, Bus.Read(PC++));
+                        return LDH(true, ReadBus(PC++));
                     case 0x1:   // POP HL
                         HL = POP();
                         return 12;
                     case 0x2:   // LDH [C], A
-                        Bus.Write((ushort)(0xFF00 | C), A);
+                        WriteBus((ushort)(0xFF00 | C), A);
                         return 8;
                     case 0x3:   // ILLEGAL
                         throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
@@ -917,12 +917,12 @@ public class Cpu
                         PUSH(HL);
                         return 16;
                     case 0x6:   // AND A, n8
-                        AND(Bus.Read(PC++));
+                        AND(ReadBus(PC++));
                         return 8;
                     case 0x7:   // RST 0X20
                         return RST(0x0020);
                     case 0x8:   // ADD SP, e8
-                        sbyte data = (sbyte)Bus.Read(PC++);
+                        sbyte data = (sbyte)ReadBus(PC++);
                         // Set flags
                         FlagC = (SP + data) > 0xFFFF;
                         FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
@@ -934,10 +934,10 @@ public class Cpu
                         PC = HL;
                         return 4;
                     case 0xA:   // LD [a16] A
-                        byte lo = Bus.Read(PC);
-                        byte hi = Bus.Read((ushort)(PC + 1));
+                        byte lo = ReadBus(PC);
+                        byte hi = ReadBus((ushort)(PC + 1));
                         PC += 2;
-                        Bus.Write((ushort)((hi << 8) | lo), A);
+                        WriteBus((ushort)((hi << 8) | lo), A);
                         return 16;
                     case 0xB:   // ILLEGAL
                         throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
@@ -946,7 +946,7 @@ public class Cpu
                     case 0xD:   // ILLEGAL
                         throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xE:   // XOR A, n8
-                        XOR(Bus.Read(PC++));
+                        XOR(ReadBus(PC++));
                         return 8;
                     case 0xF:   // RST 0X28
                         return RST(0x0028);
@@ -958,12 +958,12 @@ public class Cpu
                 switch (opcode & 0x0F)
                 {
                     case 0x0:   // LDH A, [a8]
-                        return LDH(false, Bus.Read(PC++));
+                        return LDH(false, ReadBus(PC++));
                     case 0x1:   // POP AF
                         AF = POP();
                         return 12;
                     case 0x2:   // LDH A, [C]
-                        A = Bus.Read((ushort)(0xFF00 | C));
+                        A = ReadBus((ushort)(0xFF00 | C));
                         return 8;
                     case 0x3:   // DI
                         IME = false;
@@ -974,12 +974,12 @@ public class Cpu
                         PUSH(AF);
                         return 16;
                     case 0x6:   // OR A, n8
-                        OR(Bus.Read(PC++));
+                        OR(ReadBus(PC++));
                         return 8;
                     case 0x7:   // RST 0X30
                         return RST(0x0030);
                     case 0x8:   // LD HL, SP + e8
-                        sbyte data = (sbyte)Bus.Read(PC++);
+                        sbyte data = (sbyte)ReadBus(PC++);
                         // Set flags
                         FlagC = (SP + data) > 0xFFFF;
                         FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
@@ -991,12 +991,12 @@ public class Cpu
                         SP = HL;
                         return 8;
                     case 0xA:   // LD A, [a16]
-                        byte lo = Bus.Read(PC);
-                        byte hi = Bus.Read((ushort)(PC + 1));
+                        byte lo = ReadBus(PC);
+                        byte hi = ReadBus((ushort)(PC + 1));
                         PC += 2;
 
                         ushort address = (ushort)((hi << 8) | lo);
-                        A = Bus.Read(address );
+                        A = ReadBus(address );
                         // DEBUG
                         //if (((hi << 8) | lo) == 0xC002 && A == 0x80)
                         //{
@@ -1011,7 +1011,7 @@ public class Cpu
                     case 0xD:   // ILLEGAL
                         throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xE:   // CP A, n8
-                        CP(Bus.Read(PC++));
+                        CP(ReadBus(PC++));
                         return 8;
                     case 0xF:   // RST 0x38
                         return RST(0x0038);
@@ -1207,12 +1207,12 @@ public class Cpu
         // If accumulator data to 0xFFxx
         if (isLoadFromAccumulator)
         {
-            Bus.Write((ushort)(0xFF00 | address), A);
+            WriteBus((ushort)(0xFF00 | address), A);
         }
         // If [0xFFxx] to accumulator
         else
         {
-            A = Bus.Read((ushort)(0xFF00 | address));
+            A = ReadBus((ushort)(0xFF00 | address));
         }
         return 12;
     }
@@ -1232,7 +1232,7 @@ public class Cpu
     
     private int JR(bool condition)
     {
-        sbyte signedOffest = (sbyte)Bus.Read(PC++);
+        sbyte signedOffest = (sbyte)ReadBus(PC++);
         if (condition)
         {
             PC = (ushort)(PC + signedOffest);
@@ -1252,8 +1252,8 @@ public class Cpu
     private int JP(bool isConditional, bool condition)
     {
         // Address read no matter the condition
-        byte lo = Bus.Read(PC);
-        byte hi =  Bus.Read((ushort)(PC + 1));
+        byte lo = ReadBus(PC);
+        byte hi =  ReadBus((ushort)(PC + 1));
         ushort jpAddress = (ushort)((hi << 8) | lo);
         // Increment the program counter
         PC += 2;
@@ -1297,8 +1297,8 @@ public class Cpu
     /// <returns>The number of instruction cycle</returns>
     private int CALL(bool isConditional, bool condition)
     {
-        byte hi = Bus.Read((ushort)(PC + 1));
-        byte lo = Bus.Read(PC);
+        byte hi = ReadBus((ushort)(PC + 1));
+        byte lo = ReadBus(PC);
         ushort address = (ushort)((hi << 8) | lo);
         PC += 2;
         if (condition || !isConditional)
@@ -1328,9 +1328,9 @@ public class Cpu
     /// <returns>The word popped</returns>
     private ushort POP()
     {
-        byte lo = Bus.Read(SP);
+        byte lo = ReadBus(SP);
         SP += 1;
-        byte hi = Bus.Read(SP);
+        byte hi = ReadBus(SP);
         SP += 1;
         return (ushort)((hi << 8) | lo);
     }
@@ -1342,22 +1342,22 @@ public class Cpu
     private void PUSH(ushort value)
     {
         SP -= 2;
-        Bus.Write(SP, (byte)value);
-        Bus.Write((ushort)(SP+1), (byte)(value >> 8));
-        //Console.WriteLine($"Pushed {(Bus.Read((ushort)((SP+1) << 8)) | Bus.Read(SP)):X4} to [{SP:X4}]");
+        WriteBus(SP, (byte)value);
+        WriteBus((ushort)(SP+1), (byte)(value >> 8));
+        //Console.WriteLine($"Pushed {(ReadBus((ushort)((SP+1) << 8)) | ReadBus(SP)):X4} to [{SP:X4}]");
     }
     
     private void HALT()
     {
-        /*if (IME)
+        if (IME)
         {
             Halted = true;
             PC--;   // To stay on HALT instruction
         }
         else
         {
-            byte IE = Bus.Read(0xFFFF);
-            byte IF = Bus.Read(0xFF0F);
+            byte IE = ReadBus(0xFFFF);
+            byte IF = ReadBus(0xFF0F);
             if ((IE & IF & (byte)0x1F) != 0)
             {
                 HaltBug = true;
@@ -1366,17 +1366,17 @@ public class Cpu
             {
                 Halted = true;
             }
-        }*/
-        if (!IME) {
-            byte IE = Bus.Read(0xFFFF);
-            byte IF = Bus.Read(0xFF0F);
+        }
+        /*if (!IME) {
+            byte IE = ReadBus(0xFFFF);
+            byte IF = ReadBus(0xFF0F);
             if ((IE & IF & 0x1F) == 0) {
                 Halted = true;
                 PC--;
             } else {
                 HaltBug = true;
             }
-        }
+        }*/
     }
     
     
@@ -1384,7 +1384,7 @@ public class Cpu
     // ---- Prefix OPCODES ----
     private int PREFIX()
     {
-        byte opcode = Bus.Read(PC++);
+        byte opcode = ReadBus(PC++);
         // DEBUG EXECUTE
         ExecutedDebug[opcode + 0xFF] = true;
         // Switch OPCODE
@@ -1412,7 +1412,7 @@ public class Cpu
                         L = RLC(L);
                         return 8;
                     case 0x6:   // RLC [HL]
-                        Bus.Write(HL, RLC(Bus.Read(HL)));
+                        WriteBus(HL, RLC(ReadBus(HL)));
                         return 16;
                     case 0x7:   // RLC A
                         A = RLC(A);
@@ -1436,7 +1436,7 @@ public class Cpu
                         L = RRC(L);
                         return 8;
                     case 0xE:   // RRC [HL]
-                        Bus.Write(HL, RRC(Bus.Read(HL)));
+                        WriteBus(HL, RRC(ReadBus(HL)));
                         return 16;
                     case 0xF:   // RRC A
                         A = RRC(A);
@@ -1467,7 +1467,7 @@ public class Cpu
                         L = RL(L);
                         return 8;
                     case 0x6:   // RL [HL]
-                        Bus.Write(HL, RL(Bus.Read(HL)));
+                        WriteBus(HL, RL(ReadBus(HL)));
                         return 16;
                     case 0x7:   // RL A
                         A = RL(A);
@@ -1491,7 +1491,7 @@ public class Cpu
                         L = RR(L);
                         return 8;
                     case 0xE:   // RR [HL]
-                        Bus.Write(HL, RR(Bus.Read(HL)));
+                        WriteBus(HL, RR(ReadBus(HL)));
                         return 16;
                     case 0xF:   // RR A
                         A = RR(A);
@@ -1522,7 +1522,7 @@ public class Cpu
                         L = SLA(L);
                         return 8;
                     case 0x6:   // SLA [HL]
-                        Bus.Write(HL, SLA(Bus.Read(HL)));
+                        WriteBus(HL, SLA(ReadBus(HL)));
                         return 16;
                     case 0x7:   // SLA A
                         A = SLA(A);
@@ -1546,7 +1546,7 @@ public class Cpu
                         L = SRA(L);
                         return 8;
                     case 0xE:   // SRA [HL]
-                        Bus.Write(HL, SRA(Bus.Read(HL)));
+                        WriteBus(HL, SRA(ReadBus(HL)));
                         return 16;
                     case 0xF:   // SRA A
                         A = SRA(A);
@@ -1577,7 +1577,7 @@ public class Cpu
                         L = SWAP(L);
                         return 8;
                     case 0x6:   // SWAP [HL]
-                        Bus.Write(HL, SWAP(Bus.Read(HL)));
+                        WriteBus(HL, SWAP(ReadBus(HL)));
                         return 16;
                     case 0x7:   // SWAP A
                         A = SWAP(A);
@@ -1601,7 +1601,7 @@ public class Cpu
                         L = SRL(L);
                         return 8;
                     case 0xE:   // SRL [HL]
-                        Bus.Write(HL, SRL(Bus.Read(HL)));
+                        WriteBus(HL, SRL(ReadBus(HL)));
                         return 16;
                     case 0xF:   // SRL A
                         A = SRL(A);
@@ -1632,7 +1632,7 @@ public class Cpu
                         BIT( 0x1,L);
                         return 8;
                     case 0x6:   // BIT 0, [HL]
-                        BIT( 0x1,Bus.Read(HL));
+                        BIT( 0x1,ReadBus(HL));
                         return 12;
                     case 0x7:   // BIT 0, A
                         BIT( 0x1,A);
@@ -1656,7 +1656,7 @@ public class Cpu
                         BIT( 0x2,L);
                         return 8;
                     case 0xE:   // BIT 1, [HL]
-                        BIT(0x2, Bus.Read(HL));
+                        BIT(0x2, ReadBus(HL));
                         return 12;
                     case 0xF:   // BIT 1, A
                         BIT( 0x2,A);
@@ -1687,7 +1687,7 @@ public class Cpu
                         BIT( 0x4,L);
                         return 8;
                     case 0x6:   // BIT 2, [HL]
-                        BIT( 0x4,Bus.Read(HL));
+                        BIT( 0x4,ReadBus(HL));
                         return 12;
                     case 0x7:   // BIT 2, A
                         BIT( 0x4,A);
@@ -1711,7 +1711,7 @@ public class Cpu
                         BIT( 0x8,L);
                         return 8;
                     case 0xE:   // BIT 3, [HL]
-                        BIT(0x8, Bus.Read(HL));
+                        BIT(0x8, ReadBus(HL));
                         return 12;
                     case 0xF:   // BIT 3, A
                         BIT( 0x8,A);
@@ -1742,7 +1742,7 @@ public class Cpu
                         BIT( 0x10,L);
                         return 8;
                     case 0x6:   // BIT 4, [HL]
-                        BIT( 0x10,Bus.Read(HL));
+                        BIT( 0x10,ReadBus(HL));
                         return 12;
                     case 0x7:   // BIT 4, A
                         BIT( 0x10,A);
@@ -1766,7 +1766,7 @@ public class Cpu
                         BIT( 0x20,L);
                         return 8;
                     case 0xE:   // BIT 5, [HL]
-                        BIT(0x20, Bus.Read(HL));
+                        BIT(0x20, ReadBus(HL));
                         return 12;
                     case 0xF:   // BIT 5, A
                         BIT( 0x20,A);
@@ -1797,7 +1797,7 @@ public class Cpu
                         BIT( 0x40,L);
                         return 8;
                     case 0x6:   // BIT 6, [HL]
-                        BIT( 0x40,Bus.Read(HL));
+                        BIT( 0x40,ReadBus(HL));
                         return 12;
                     case 0x7:   // BIT 6, A
                         BIT( 0x40,A);
@@ -1821,7 +1821,7 @@ public class Cpu
                         BIT( 0x80,L);
                         return 8;
                     case 0xE:   // BIT 7, [HL]
-                        BIT(0x80, Bus.Read(HL));
+                        BIT(0x80, ReadBus(HL));
                         return 12;
                     case 0xF:   // BIT 7, A
                         BIT( 0x80,A);
@@ -1852,7 +1852,7 @@ public class Cpu
                         L = RES( 0x1,L);
                         return 8;
                     case 0x6:   // RES 0, [HL]
-                        Bus.Write(HL, RES( 0x1,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x1,ReadBus(HL)));
                         return 16;
                     case 0x7:   // RES 0, A
                         A = RES( 0x1,A);
@@ -1876,7 +1876,7 @@ public class Cpu
                         L = RES( 0x2,L);
                         return 8;
                     case 0xE:   // RES 1, [HL]
-                        Bus.Write(HL, RES( 0x2,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x2,ReadBus(HL)));
                         return 16;
                     case 0xF:   // RES 1, A
                         A = RES( 0x2,A);
@@ -1907,7 +1907,7 @@ public class Cpu
                         L = RES( 0x4,L);
                         return 8;
                     case 0x6:   // RES 2, [HL]
-                        Bus.Write(HL, RES( 0x4,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x4,ReadBus(HL)));
                         return 16;
                     case 0x7:   // RES 2, A
                         A = RES( 0x4,A);
@@ -1931,7 +1931,7 @@ public class Cpu
                         L = RES( 0x8,L);
                         return 8;
                     case 0xE:   // RES 3, [HL]
-                        Bus.Write(HL, RES( 0x8,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x8,ReadBus(HL)));
                         return 16;
                     case 0xF:   // RES 3, A
                         A = RES( 0x8,A);
@@ -1962,7 +1962,7 @@ public class Cpu
                         L = RES( 0x10,L);
                         return 8;
                     case 0x6:   // RES 4, [HL]
-                        Bus.Write(HL, RES( 0x10,Bus.Read(HL)));;
+                        WriteBus(HL, RES( 0x10,ReadBus(HL)));;
                         return 16;
                     case 0x7:   // RES 4, A
                         A = RES( 0x10,A);
@@ -1986,7 +1986,7 @@ public class Cpu
                         L = RES( 0x20,L);
                         return 8;
                     case 0xE:   // RES 5, [HL]
-                        Bus.Write(HL, RES( 0x20,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x20,ReadBus(HL)));
                         return 16;
                     case 0xF:   // RES 5, A
                         A = RES( 0x20,A);
@@ -2017,7 +2017,7 @@ public class Cpu
                         L = RES( 0x40,L);
                         return 8;
                     case 0x6:   // RES 6, [HL]
-                        Bus.Write(HL, RES( 0x40,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x40,ReadBus(HL)));
                         return 16;
                     case 0x7:   // RES 6, A
                         A = RES( 0x40,A);
@@ -2041,7 +2041,7 @@ public class Cpu
                         L = RES( 0x80,L);
                         return 8;
                     case 0xE:   // RES 7, [HL]
-                        Bus.Write(HL, RES( 0x80,Bus.Read(HL)));
+                        WriteBus(HL, RES( 0x80,ReadBus(HL)));
                         return 16;
                     case 0xF:   // RES 7, A
                         A = RES( 0x80,A);
@@ -2072,7 +2072,7 @@ public class Cpu
                         L = SET( 0x1,L);
                         return 8;
                     case 0x6:   // SET 0, [HL]
-                        Bus.Write(HL, SET( 0x1,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x1,ReadBus(HL)));
                         return 16;
                     case 0x7:   // SET 0, A
                         A = SET( 0x1,A);
@@ -2096,7 +2096,7 @@ public class Cpu
                         L = SET( 0x2,L);
                         return 8;
                     case 0xE:   // SET 1, [HL]
-                        Bus.Write(HL, SET( 0x2,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x2,ReadBus(HL)));
                         return 16;
                     case 0xF:   // SET 1, A
                         A = SET( 0x2,A);
@@ -2127,7 +2127,7 @@ public class Cpu
                         L = SET( 0x4,L);
                         return 8;
                     case 0x6:   // SET 2, [HL]
-                        Bus.Write(HL, SET( 0x4,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x4,ReadBus(HL)));
                         return 16;
                     case 0x7:   // SET 2, A
                         A = SET( 0x4,A);
@@ -2151,7 +2151,7 @@ public class Cpu
                         L = SET( 0x8,L);
                         return 8;
                     case 0xE:   // SET 3, [HL]
-                        Bus.Write(HL, SET( 0x8,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x8,ReadBus(HL)));
                         return 16;
                     case 0xF:   // SET 3, A
                         A = SET( 0x8,A);
@@ -2182,7 +2182,7 @@ public class Cpu
                         L = SET( 0x10,L);
                         return 8;
                     case 0x6:   // SET 4, [HL]
-                        Bus.Write(HL, SET( 0x10,Bus.Read(HL)));;
+                        WriteBus(HL, SET( 0x10,ReadBus(HL)));;
                         return 16;
                     case 0x7:   // SET 4, A
                         A = SET( 0x10,A);
@@ -2206,7 +2206,7 @@ public class Cpu
                         L = SET( 0x20,L);
                         return 8;
                     case 0xE:   // SET 5, [HL]
-                        Bus.Write(HL, SET( 0x20,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x20,ReadBus(HL)));
                         return 16;
                     case 0xF:   // SET 5, A
                         A = SET( 0x20,A);
@@ -2237,7 +2237,7 @@ public class Cpu
                         L = SET( 0x40,L);
                         return 8;
                     case 0x6:   // SET 6, [HL]
-                        Bus.Write(HL, SET( 0x40,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x40,ReadBus(HL)));
                         return 16;
                     case 0x7:   // SET 6, A
                         A = SET( 0x40,A);
@@ -2261,7 +2261,7 @@ public class Cpu
                         L = SET( 0x80,L);
                         return 8;
                     case 0xE:   // SET 7, [HL]
-                        Bus.Write(HL, SET( 0x80,Bus.Read(HL)));
+                        WriteBus(HL, SET( 0x80,ReadBus(HL)));
                         return 16;
                     case 0xF:   // SET 7, A
                         A = SET( 0x80,A);
@@ -2439,6 +2439,7 @@ public class Cpu
         if (!IsOamDma || (address >= 0xFF80 && address <= 0xFFFE))
         {
             Bus.Write(address, data);
+            return;
         }
         // If OAM DMA
         if (IsOamDma)
@@ -2497,9 +2498,11 @@ public class Cpu
             {
                 return Bus.Read(address);
             }
+
+            return 0xFF;
         }
 
-        return 0xFF;
+        return Bus.Read(address);
     }
 
     public void SetCpuOamDma(bool isOamDma)
@@ -2513,8 +2516,8 @@ public class Cpu
     {
         if (!IME) return 0;
         // Compare interrupts flags and enables
-        byte IE = Bus.Read(0xFFFF);
-        byte IF = Bus.Read(0xFF0F);
+        byte IE = ReadBus(0xFFFF);
+        byte IF = ReadBus(0xFF0F);
 
         //Console.WriteLine($"Before handling interrupt: IE={IE:X2}, IF={IF:X2}, IME={IME}");
                 
@@ -2555,7 +2558,7 @@ public class Cpu
                 intStr = "WTF";
                 break;
         }
-        //Console.WriteLine($"Before interrupt, LCDC = {Bus.Read(0xFF40):X4}, SP = {SP:X4}, PC = {PC:X4}");
+        //Console.WriteLine($"Before interrupt, LCDC = {ReadBus(0xFF40):X4}, SP = {SP:X4}, PC = {PC:X4}");
         //Console.WriteLine($"Executing {intStr} interrupt. PC before: 0x{PC:X4}");
         //throw new Exception();
         if (Halted)
@@ -2573,14 +2576,14 @@ public class Cpu
             // Disable IME
             IME = false;
             // Disable bit of interrupt flag
-            byte IE = Bus.Read(0xFFFF);
-            byte IF = Bus.Read(0xFF0F);
+            byte IE = ReadBus(0xFFFF);
+            byte IF = ReadBus(0xFF0F);
             IF &= (byte)~(1 << b);
-            Bus.Write(0xFF0F, IF);
+            WriteBus(0xFF0F, IF);
             //Console.WriteLine($"IME enabled, jumping to 0x{PC:X4}.");
             cycles += 16;
             //Console.WriteLine($"After handling interrupt: IE={IE:X2}, IF={IF:X2}, IME={IME}");
-            //Console.WriteLine($"After interrupt, LCDC = {Bus.Read(0xFF40):X4}, SP = {SP:X4} ({(Bus.Read((ushort)((SP+1) << 8)) | Bus.Read(SP)):X4}), PC = {PC:X4}");
+            //Console.WriteLine($"After interrupt, LCDC = {ReadBus(0xFF40):X4}, SP = {SP:X4} ({(ReadBus((ushort)((SP+1) << 8)) | ReadBus(SP)):X4}), PC = {PC:X4}");
 
         }
         return cycles;

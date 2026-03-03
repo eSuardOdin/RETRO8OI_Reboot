@@ -25,6 +25,7 @@ public class Gameboy
     public Joypad Joypad { get; private set; }
     public Serial Serial { get; private set; }
     
+    public DebugUnknownAdresses DebugAdresses { get; private set; } 
 
     public Gameboy()
     {
@@ -50,6 +51,8 @@ public class Gameboy
         Joypad = new Joypad(Bus);
         Serial = new Serial();
         
+        // Debug 
+        //DebugAdresses = new DebugUnknownAdresses();
         
         Cpu = new Cpu(Bus, Ppu);
         Cycles = 0;
@@ -62,6 +65,7 @@ public class Gameboy
         Bus.Map(Timer);
         Bus.Map(Joypad);
         Bus.Map(Serial);
+        //Bus.Map(DebugAdresses);
     }
 
     public void LoadCart(String cartPath)

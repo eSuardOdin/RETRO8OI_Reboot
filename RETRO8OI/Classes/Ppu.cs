@@ -34,7 +34,7 @@ public class Ppu : IMemoryMappedDevice
     private byte[] OAM;
     public byte[] Vram { get; private set; }
     private ushort OamDmaAddr = 0;
-    private byte OamDmaCyclesDone = 0;
+    private int OamDmaCyclesDone = 0;
     private byte LCDC = 0x91;
 
     private bool IsLcdPpuEnabled
@@ -227,15 +227,25 @@ public class Ppu : IMemoryMappedDevice
     {
         for (int i = 0; i < cycles; i++)
         {
-            // Copy a byte by CPU cycle and increment values
-            OAM[OamDmaCyclesDone] = Bus.Read(OamDmaAddr);
+            if (OamDmaCyclesDone % 4 == 0)
+            {
+                // Copy a byte by CPU cycle and increment values
+                OAM[OamDmaCyclesDone / 4] = Bus.Read(OamDmaAddr);
+                OamDmaAddr++;
+            }
+            //Console.WriteLine($"M-Cycles: {OamDmaCyclesDone / 4} | T-Cycles: {OamDmaCyclesDone}");
             OamDmaCyclesDone++;
-            OamDmaAddr++;
             // Check if OAM DMA done
-            if (OamDmaCyclesDone >= OAM.Length)
+            if (OamDmaCyclesDone >= OAM.Length * 4)
             {
                 // Event to signal OAM DMA ended
                 OnOamDmaEvent(false);
+                // Debug OAM contains : 
+                /*for (int j = 0; j < OAM.Length; j += 4)
+                {
+                    Console.WriteLine($"{OAM[j]:X4} {OAM[j+1]:X4} {OAM[j+2]:X4} {OAM[j+3]:X4}");
+                }
+                Console.WriteLine("****************************************");*/
                 return;
             }
         }
@@ -377,6 +387,10 @@ public class Ppu : IMemoryMappedDevice
         // Check values in OAM, each object is 4 bytes long
         for (int i = 0; i < (OAM.Length / 4); i += 4)
         {
+            /*if (i % 4 == 0 && OAM[i] != 0)
+            {
+                Console.WriteLine($"{OAM[i]:X4} {OAM[i+1]:X4} {OAM[i+2]:X4} {OAM[i+3]:X4}");
+            }*/
             // Get the next OAM object
             int objY = OAM[i] - 16;
             int objX = OAM[i + 1] - 8;
@@ -386,6 +400,10 @@ public class Ppu : IMemoryMappedDevice
             // Get the objects that appears on the line
             if (line < (objY + spriteSize) && line >= objY)
             {
+                if (i == 28)
+                {
+                    Console.WriteLine($"X: {objX} Y: {objY}");
+                }
                 // Set flag values
                 objInLine++;
                 bool isOverBG = (flags & 0x80) == 0;
