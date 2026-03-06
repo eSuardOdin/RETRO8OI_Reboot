@@ -45,7 +45,7 @@ public class Ppu : IMemoryMappedDevice
 
     private ushort WindowTilemapAddress => (LCDC & 0x40) == 0x40 ? (ushort)0x9C00 : (ushort)0x9800;
 
-    private ushort TileMapBaseAddress => (LCDC & 0x10) == 0x10 ? (ushort)0x8000 : (ushort)0x9000;
+    private ushort TileDataAddress => (LCDC & 0x10) == 0x10 ? (ushort)0x8000 : (ushort)0x9000;
 
     private ushort BGTileMapArea => (LCDC & 0x8) == 0x8 ? (ushort)0x9C00 : (ushort)0x9800;
 
@@ -298,10 +298,14 @@ public class Ppu : IMemoryMappedDevice
                     // If tile to display is Background tile
                     if (!isWindow)
                     {
+                        if (LY >= 0x30)
+                        {
+                            Console.WriteLine($"Tile data mode is now {TileDataAddress:X4}");
+                        }
                         // Get the tilemap index with suppressing VRAM offset (0x8000)
                         byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
                         // If $8800 mode (index is signed)
-                        if (TileMapBaseAddress == 0x9000)
+                        if (TileDataAddress == 0x9000)
                         {
                             sbyte index = (sbyte)tileIndex;
                             short trueIndex = (short)(index * 0x10);
@@ -321,8 +325,9 @@ public class Ppu : IMemoryMappedDevice
                         // Get the tilemap index with suppressing VRAM offset (0x8000)
                         byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
                         // If $8800 mode (index is signed)
-                        if (TileMapBaseAddress == 0x9000)
+                        if (TileDataAddress == 0x9000)
                         {
+                            
                             sbyte index = (sbyte)tileIndex;
                             short trueIndex = (short)(index * 0x10);
                             // Because base
@@ -367,7 +372,6 @@ public class Ppu : IMemoryMappedDevice
     /// <param name="line"></param>
     private void BufferizeSprites(byte line)
     {
-        if(line == 8) Console.WriteLine();
         // DMG can only display 10 sprites on a line
         int objInLine = 0;
         int spriteSize = IsObjEightBySixteen ? 16 : 8;
@@ -379,6 +383,7 @@ public class Ppu : IMemoryMappedDevice
             int objX = OAM[i + 1] - 8;
             int tileIndex = IsObjEightBySixteen ? OAM[i + 2] & 0xFE : OAM[i + 2];
             int flags  = OAM[i + 3];
+            
             
             // Get the objects that appears on the line
             if (line < (objY + spriteSize) && line >= objY)
@@ -425,13 +430,13 @@ public class Ppu : IMemoryMappedDevice
                     
                     p += isFlippedX ? -1 : 1;
                 }
-                
+                if (objInLine == 10)
+                {
+                    return;
+                }
             }
 
-            if (objInLine == 10)
-            {
-                return;
-            }
+            
         }
         
     }
@@ -439,7 +444,10 @@ public class Ppu : IMemoryMappedDevice
     private void BufferizeScanline(byte line)
     {
         BufferizeBackgroundAndWindow(line);
-        BufferizeSprites(line);
+        if (IsObjEnabled)
+        {
+            //BufferizeSprites(line);
+        }
     }
     
     
@@ -516,7 +524,17 @@ public class Ppu : IMemoryMappedDevice
                     OBP1 = data;
                     return;
                 case 0xFF40:    // LCDC
+                    // int wtilemap = LCDC & 0b01000000;
+                    // int bgtilemap = LCDC & 0b00001000;
                     LCDC = data;
+                    // if ((LCDC & 0b01000000) != wtilemap)
+                    // {
+                    //     Console.WriteLine($"LCDC -> Window tilemap (bit 6) changed on line {LY}. Value: {LCDC:b8}");
+                    // } 
+                    // else if ((LCDC & 0b00001000) != bgtilemap)
+                    // {
+                    //     Console.WriteLine($"LCDC -> BG tilemap (bit 6) changed on line {LY}. Value: {LCDC:b8}");
+                    // }
                     return;
                 case 0xFF44:    // LY
                     return;
