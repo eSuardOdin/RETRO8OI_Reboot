@@ -55,6 +55,7 @@ public class Gameboy
         //DebugAdresses = new DebugUnknownAdresses();
         
         Cpu = new Cpu(Bus, Ppu);
+        //Cpu.OnStateInterrupt += DisablePpuStateLine;
         Cycles = 0;
         
         // Binding Memory devices to BUS
@@ -67,6 +68,11 @@ public class Gameboy
         Bus.Map(Serial);
         //Bus.Map(DebugAdresses);
     }
+
+    // private void DisablePpuStateLine()
+    // {
+    //     Ppu.UnsetStatLine();
+    // }
 
     public void LoadCart(String cartPath)
     {

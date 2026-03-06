@@ -10,7 +10,7 @@ public class Cpu
     // public event EventHandler<bool> StopModeToggled; // TODO When working on STOP instruction 
     
     public MemoryBus Bus { get; private set; }
-
+    public event Action OnStateInterrupt ;
     public bool[] ExecutedDebug;
     private Ppu Ppu;
     // Registers
@@ -2573,6 +2573,11 @@ public class Cpu
             // Get return from interrupt vector value 
             PUSH(PC);
             PC = (ushort)(0x40 + (b * 8));
+            // // If STAT interrupt, disable statline 
+            // if (b == 1)
+            // {
+            //     OnStateInterrupt?.Invoke();
+            // }
             // Disable IME
             IME = false;
             // Disable bit of interrupt flag

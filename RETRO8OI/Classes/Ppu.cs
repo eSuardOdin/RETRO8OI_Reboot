@@ -37,51 +37,23 @@ public class Ppu : IMemoryMappedDevice
     private int OamDmaCyclesDone = 0;
     private byte LCDC = 0x91;
 
-    private bool IsLcdPpuEnabled
-    {
-        get => (LCDC & 0x80) == 0x80;
-    }
-    private bool IsWindowEnabled    // Bit 5 of LCDC
-    {
-        get
-        {
-            return (LCDC & 0x20) == 0x20; // Beware, need to take bit 0 into account too
-        } 
-    }
-    private bool IsBackgroundAndWindowEnabled
-    {
-        get
-        {
-            return (LCDC & 0x1) == 0x1;
-        }
-    }
+    private bool IsLcdPpuEnabled => (LCDC & 0x80) == 0x80;
+    private bool IsWindowEnabled => (LCDC & 0x20) == 0x20; // Bit 5 of LCDC
 
-    private ushort WindowTilemapAddress
-    {
-        get => (LCDC & 0x40) == 0x40 ? (ushort)0x9C00 : (ushort)0x9800;
-    }
+    // Beware, need to take bit 0 into account too
+    private bool IsBackgroundAndWindowEnabled => (LCDC & 0x1) == 0x1;
 
-    private ushort TileMapBaseAddress
-    {
-        get => (LCDC & 0x10) == 0x10 ? (ushort)0x8000 : (ushort)0x9000;
-    }
+    private ushort WindowTilemapAddress => (LCDC & 0x40) == 0x40 ? (ushort)0x9C00 : (ushort)0x9800;
 
-    private ushort BGTileMapArea
-    {
-        get => (LCDC & 0x8) == 0x8 ? (ushort)0x9C00 : (ushort)0x9800;
-    }
+    private ushort TileMapBaseAddress => (LCDC & 0x10) == 0x10 ? (ushort)0x8000 : (ushort)0x9000;
 
-    private bool IsObjEightBySixteen
-    {
-        get => (LCDC & 0x4) == 0x4;
-    }
+    private ushort BGTileMapArea => (LCDC & 0x8) == 0x8 ? (ushort)0x9C00 : (ushort)0x9800;
 
-    private bool IsObjEnabled
-    {
-        get => (LCDC & 0x2) == 0x2;
-    }
-    
-    
+    private bool IsObjEightBySixteen => (LCDC & 0x4) == 0x4;
+
+    private bool IsObjEnabled => (LCDC & 0x2) == 0x2;
+
+
     private byte LY = 0;
     private byte LYC = 0;
     private byte STAT = 0x85;
@@ -173,6 +145,7 @@ public class Ppu : IMemoryMappedDevice
                         BufferizeScanline(LY);
                         // Going to HBlank
                         Mode = 0x0;
+                        CheckStatInterrupt();
                         VerticalCyclesCount -= 172;
                     }
                     break;
@@ -186,7 +159,7 @@ public class Ppu : IMemoryMappedDevice
                         if (LY >= 144)
                         {
                             Mode = 0x1; // Switch to VBlank
-                            
+                            CheckStatInterrupt();
                             // Write VBlank interrupt request flag
                             byte IF = Bus.Read(0xFF0F); 
                             Bus.Write(0xFF0F, (byte)(IF | 0x1));
@@ -194,6 +167,7 @@ public class Ppu : IMemoryMappedDevice
                         else
                         {
                             Mode = 0x2; // Switch to OAM Scan for next visible line
+                            CheckStatInterrupt();
                         }
                     }
                     break;
@@ -207,6 +181,7 @@ public class Ppu : IMemoryMappedDevice
                         {
                             Render();
                             Mode = 0x2; // Switch to OAM Scan
+                            CheckStatInterrupt();
                             LY = 0;
                         }
                     }
@@ -307,69 +282,80 @@ public class Ppu : IMemoryMappedDevice
         
         for (int x = 0; x < Width; x++)
         {
-            posX = isWindow ? (WX - 7) + x : (SCX + x) % 0xFF;
-            tileX = posX / 8;
-            pixX = posX % 8;
-        
-            // If first pixel of tile row, get tile
-            if (x == 0 || pixX % 8 == 0)
+            // Color index = 0 if LCDC bit 0 is unset
+            byte colorIndex = 0;
+            // If BG & Window enable / priority (LCDC bit 0)
+            if (IsBackgroundAndWindowEnabled)
             {
-                var tile = new byte[16];
-                // If tile to display is Background tile
-                if (!isWindow)
+                posX = isWindow ? (WX - 7) + x : (SCX + x) % 0xFF;
+                tileX = posX / 8;
+                pixX = posX % 8;
+            
+                // If first pixel of tile row, get tile
+                if (x == 0 || pixX % 8 == 0)
                 {
-                    // Get the tilemap index with suppressing VRAM offset (0x8000)
-                    byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
-                    // If $8800 mode (index is signed)
-                    if (TileMapBaseAddress == 0x9000)
+                    var tile = new byte[16];
+                    // If tile to display is Background tile
+                    if (!isWindow)
                     {
-                        sbyte index = (sbyte)tileIndex;
-                        short trueIndex = (short)(index * 0x10);
-                        // Because base address is 0x9000, we add an offset of 0x1000
-                        Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                        // Get the tilemap index with suppressing VRAM offset (0x8000)
+                        byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
+                        // If $8800 mode (index is signed)
+                        if (TileMapBaseAddress == 0x9000)
+                        {
+                            sbyte index = (sbyte)tileIndex;
+                            short trueIndex = (short)(index * 0x10);
+                            // Because base address is 0x9000, we add an offset of 0x1000
+                            Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                        }
+                        // Else if $8000 mode
+                        else
+                        {
+                            Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
+                        }
+                        
                     }
-                    // Else if $8000 mode
-                    else
+                    // If tile is Window tile
+                    else if(IsWindowEnabled)
                     {
-                        Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
+                        // Get the tilemap index with suppressing VRAM offset (0x8000)
+                        byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
+                        // If $8800 mode (index is signed)
+                        if (TileMapBaseAddress == 0x9000)
+                        {
+                            sbyte index = (sbyte)tileIndex;
+                            short trueIndex = (short)(index * 0x10);
+                            // Because base
+                            Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                        }
+                        // Else if $8000 mode
+                        else
+                        {
+                            Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
+                        }
                     }
                     
+                    
+                    hi = tile[(row * 2)+1];
+                    lo = tile[(row * 2)];
                 }
-                // If tile is Window tile
-                else if(IsWindowEnabled)
-                {
-                    // Get the tilemap index with suppressing VRAM offset (0x8000)
-                    byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
-                    // If $8800 mode (index is signed)
-                    if (TileMapBaseAddress == 0x9000)
-                    {
-                        sbyte index = (sbyte)tileIndex;
-                        short trueIndex = (short)(index * 0x10);
-                        // Because base
-                        Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
-                    }
-                    // Else if $8000 mode
-                    else
-                    {
-                        Array.Copy(Vram, tileIndex * 0x10, tile, 0, 16);
-                    }
-                }
-                
-                
-                hi = tile[(row * 2)+1];
-                lo = tile[(row * 2)];
-            }
-        
-            // Get palette index
-            hi_b = (byte)((hi >> (7 - pixX)) & 1);
-            lo_b = (byte)((lo >> (7 - pixX)) & 1);
-            byte paletteIndex = (byte) (lo_b | (hi_b<<1));
-        
-            // Get the color depending on the palette
-            byte colorIndex = (byte)((BGP & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
             
-            // Put in Framebuffer
-            FrameBuffer[line * Width + x] = colorIndex;
+                // Get palette index
+                hi_b = (byte)((hi >> (7 - pixX)) & 1);
+                lo_b = (byte)((lo >> (7 - pixX)) & 1);
+                byte paletteIndex = (byte) (lo_b | (hi_b<<1));
+            
+                // Get the color depending on the palette
+                colorIndex = (byte)((BGP & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+            
+                // Put in Framebuffer
+                FrameBuffer[line * Width + x] = colorIndex;
+            }
+            else
+            {
+                // Put in Framebuffer
+                FrameBuffer[line * Width + x] = 0;
+            }
         }
     }
 
@@ -381,29 +367,30 @@ public class Ppu : IMemoryMappedDevice
     /// <param name="line"></param>
     private void BufferizeSprites(byte line)
     {
+        if(line == 8) Console.WriteLine();
         // DMG can only display 10 sprites on a line
         int objInLine = 0;
         int spriteSize = IsObjEightBySixteen ? 16 : 8;
         // Check values in OAM, each object is 4 bytes long
-        for (int i = 0; i < (OAM.Length / 4); i += 4)
+        for (int i = 0; i < OAM.Length; i += 4)
         {
-            /*if (i % 4 == 0 && OAM[i] != 0)
-            {
-                Console.WriteLine($"{OAM[i]:X4} {OAM[i+1]:X4} {OAM[i+2]:X4} {OAM[i+3]:X4}");
-            }*/
             // Get the next OAM object
             int objY = OAM[i] - 16;
             int objX = OAM[i + 1] - 8;
-            int tileIndex = OAM[i + 2];
+            int tileIndex = IsObjEightBySixteen ? OAM[i + 2] & 0xFE : OAM[i + 2];
             int flags  = OAM[i + 3];
             
             // Get the objects that appears on the line
             if (line < (objY + spriteSize) && line >= objY)
             {
+                
+                //Console.WriteLine($"Y: {OAM[i]:X4}  X: {OAM[i+1]:X4}  Tile: {OAM[i+2]:X4}  Flags: {OAM[i+3]:X4}");
+                /*
                 if (i == 28)
                 {
                     Console.WriteLine($"X: {objX} Y: {objY}");
                 }
+                */
                 // Set flag values
                 objInLine++;
                 bool isOverBG = (flags & 0x80) == 0;
@@ -415,7 +402,7 @@ public class Ppu : IMemoryMappedDevice
                 // Get row of sprite to draw (Invert if flipped)
                 int spriteRow = isFlippedY ? (spriteSize - 1 - (line - objY)) : (line - objY);
                 
-                int index = 0x8000 + (tileIndex * 0x10) + (spriteRow * 2);
+                
                 byte lo = Vram[(tileIndex * 0x10) + (spriteRow * 2)];
                 byte hi = Vram[(tileIndex * 0x10) + (spriteRow * 2) + 1];
                 // Draw depending on X Flip
@@ -430,8 +417,8 @@ public class Ppu : IMemoryMappedDevice
                     // Check for priority
                     if ((isOverBG && paletteIndex != 0) || (!isOverBG && paletteIndex == 0))
                     {
-                        // Get the color depending on the palette
                         byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+                        // Get the color depending on the palette
                         // Put in Framebuffer
                         FrameBuffer[startIndex + xPix] = colorIndex;
                     }
@@ -529,15 +516,6 @@ public class Ppu : IMemoryMappedDevice
                     OBP1 = data;
                     return;
                 case 0xFF40:    // LCDC
-                    // 00100000 -> WINON
-                    // if ((data & 0x20) == 0x20)
-                    // {
-                    //     Console.WriteLine("LCDC put window ON");
-                    // }
-                    // else
-                    // {
-                    //     Console.WriteLine("LCDC put window OFF");
-                    // }
                     LCDC = data;
                     return;
                 case 0xFF44:    // LY
@@ -637,4 +615,6 @@ public class Ppu : IMemoryMappedDevice
         }
     }
 
+
+    // public void UnsetStatLine() => StatIntLine = false;
 }
