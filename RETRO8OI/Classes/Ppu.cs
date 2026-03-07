@@ -271,9 +271,6 @@ public class Ppu : IMemoryMappedDevice
     {
         // Check if the line to display is window or bg
         bool isWindow = (LY >= WY && IsWindowEnabled);
-        int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
-        int tileY = posY / 8;
-        int row = posY % 8;
         int posX, tileX, pixX;
         byte lo = 0;
         byte hi = 0;
@@ -287,21 +284,21 @@ public class Ppu : IMemoryMappedDevice
             // If BG & Window enable / priority (LCDC bit 0)
             if (IsBackgroundAndWindowEnabled)
             {
-                posX = isWindow ? (WX - 7) + x : (SCX + x) % 0xFF;
+                isWindow = (LY >= WY && IsWindowEnabled && x >= WX - 7);
+                int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
+                int tileY = posY / 8;
+                int row = posY % 8;
+                posX = isWindow ? x - (WX - 7) : (SCX + x) % 0xFF;
                 tileX = posX / 8;
                 pixX = posX % 8;
             
                 // If first pixel of tile row, get tile
-                if (x == 0 || pixX % 8 == 0)
+                if (pixX == 0)
                 {
                     var tile = new byte[16];
                     // If tile to display is Background tile
                     if (!isWindow)
                     {
-                        if (LY >= 0x30)
-                        {
-                            Console.WriteLine($"Tile data mode is now {TileDataAddress:X4}");
-                        }
                         // Get the tilemap index with suppressing VRAM offset (0x8000)
                         byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
                         // If $8800 mode (index is signed)
@@ -310,7 +307,8 @@ public class Ppu : IMemoryMappedDevice
                             sbyte index = (sbyte)tileIndex;
                             short trueIndex = (short)(index * 0x10);
                             // Because base address is 0x9000, we add an offset of 0x1000
-                            Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                            Array.Copy(Vram, ((short)(0x1000 + trueIndex)), tile, 0, 16);
+                            
                         }
                         // Else if $8000 mode
                         else
@@ -331,7 +329,7 @@ public class Ppu : IMemoryMappedDevice
                             sbyte index = (sbyte)tileIndex;
                             short trueIndex = (short)(index * 0x10);
                             // Because base
-                            Array.Copy(Vram, (0x1000 + trueIndex), tile, 0, 16);
+                            Array.Copy(Vram, ((short)(0x1000 + trueIndex)), tile, 0, 16);
                         }
                         // Else if $8000 mode
                         else
@@ -420,7 +418,8 @@ public class Ppu : IMemoryMappedDevice
                     
                     byte paletteIndex = (byte) (lo_b | (hi_b<<1));
                     // Check for priority
-                    if ((isOverBG && paletteIndex != 0) || (!isOverBG && paletteIndex == 0))
+                    //if ((isOverBG && paletteIndex != 0) || (!isOverBG && paletteIndex == 0))
+                    if (paletteIndex != 0 && (isOverBG || FrameBuffer[startIndex + xPix] == 0))
                     {
                         byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
                         // Get the color depending on the palette
@@ -446,7 +445,7 @@ public class Ppu : IMemoryMappedDevice
         BufferizeBackgroundAndWindow(line);
         if (IsObjEnabled)
         {
-            //BufferizeSprites(line);
+            BufferizeSprites(line);
         }
     }
     
