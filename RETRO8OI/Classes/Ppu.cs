@@ -60,6 +60,7 @@ public class Ppu : IMemoryMappedDevice
     private byte SCY = 0;
     private byte SCX = 0;
     private byte WY = 0;
+    private byte WindowLineCounter = 0;
     private byte WX = 0;
     private byte BGP = 0;
     private byte OBP0 = 0;
@@ -174,6 +175,7 @@ public class Ppu : IMemoryMappedDevice
                 case 1: // VBlank
                     if (VerticalCyclesCount >= 456)
                     {
+                        WindowLineCounter = 0;
                         LY++;
                         CheckLyLyc();
                         VerticalCyclesCount -= 456;
@@ -285,7 +287,8 @@ public class Ppu : IMemoryMappedDevice
             if (IsBackgroundAndWindowEnabled)
             {
                 isWindow = (LY >= WY && IsWindowEnabled && x >= WX - 7);
-                int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
+                // int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
+                int posY = isWindow ? WindowLineCounter : (SCY + line) % 0xFF;
                 int tileY = posY / 8;
                 int row = posY % 8;
                 posX = isWindow ? x - (WX - 7) : (SCX + x) % 0xFF;
@@ -320,6 +323,7 @@ public class Ppu : IMemoryMappedDevice
                     // If tile is Window tile
                     else if(IsWindowEnabled)
                     {
+                        
                         // Get the tilemap index with suppressing VRAM offset (0x8000)
                         byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
                         // If $8800 mode (index is signed)
@@ -359,6 +363,11 @@ public class Ppu : IMemoryMappedDevice
                 // Put in Framebuffer
                 FrameBuffer[line * Width + x] = 0;
             }
+        }
+        // If window has been displayed
+        if (IsWindowEnabled && IsBackgroundAndWindowEnabled && isWindow)
+        {
+            WindowLineCounter++;
         }
     }
 
