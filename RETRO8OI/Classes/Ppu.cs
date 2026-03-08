@@ -430,10 +430,20 @@ public class Ppu : IMemoryMappedDevice
                     //if ((isOverBG && paletteIndex != 0) || (!isOverBG && paletteIndex == 0))
                     if (paletteIndex != 0 && (isOverBG || FrameBuffer[startIndex + xPix] == 0))
                     {
-                        byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
                         // Get the color depending on the palette
-                        // Put in Framebuffer
-                        FrameBuffer[startIndex + xPix] = colorIndex;
+                        byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+
+                        // To remove, I think it's just that objects can be located outside viewport...
+                        bool isCrashing = startIndex + xPix >= Width * Height;
+                        if (isCrashing)
+                        {
+                            Console.WriteLine("This would have crash");
+                        }
+                        else
+                        {
+                            // Put in Framebuffer
+                            FrameBuffer[startIndex + xPix] = colorIndex;
+                        }
                     }
                     
                     p += isFlippedX ? -1 : 1;
