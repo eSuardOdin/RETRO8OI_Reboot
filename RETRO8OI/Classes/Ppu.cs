@@ -296,7 +296,7 @@ public class Ppu : IMemoryMappedDevice
                 pixX = posX % 8;
             
                 // If first pixel of tile row, get tile
-                if (pixX == 0)
+                if (x == 0 || pixX % 8 == 0)
                 {
                     var tile = new byte[16];
                     // If tile to display is Background tile
