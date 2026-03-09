@@ -884,11 +884,13 @@ public class Cpu
                     case 0xA:   // JP C, a16
                         return JP(true, FlagC);
                     case 0xB:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        throw new NotImplementedException($"Instruction [{opcode:X2}] not implemented (ILLEGAL OPCODE).");
                     case 0xC:   // CALL C, a16
                         return CALL(true, FlagC);
                     case 0xD:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        // throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        Console.WriteLine($"Instruction [{opcode:X2}] not implemented (ILLEGAL OPCODE).");
+                        return 0;
                     case 0xE:   // SBC A, n8
                         SBC(ReadBus(PC++));
                         return 8;
@@ -922,13 +924,20 @@ public class Cpu
                     case 0x7:   // RST 0X20
                         return RST(0x0020);
                     case 0x8:   // ADD SP, e8
-                        sbyte data = (sbyte)ReadBus(PC++);
+                        int d = ReadBus(PC++);
+                        sbyte data = (sbyte)d;
+                        Console.WriteLine($"E8 (Add SP, e8)\nData: {d}, Signed: {data}\nSP: {SP:X4}");
                         // Set flags
                         FlagC = (SP + data) > 0xFFFF;
-                        FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
+                        Console.WriteLine($"SP + DATA = {(SP+data):X}");
+                        if(FlagC) Console.WriteLine($"Carry flag set");
+                        // FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
+                        FlagH = data > 0 ? (SP & 0xFF) + (data & 0xFF) > 0xFF : (SP & 0xFF) + data < 0;
+                        if(FlagH) Console.WriteLine($"Half-Carry flag set");
                         FlagZ = false;
                         FlagN = false;
                         SP = (ushort)(SP + data);
+                        Console.WriteLine($"FINAL SP = {(ushort)(SP+data):X}");
                         return 16;
                     case 0x9:   // JP HL
                         PC = HL;
@@ -1039,11 +1048,11 @@ public class Cpu
         {
             if (FlagH)
             {
-                adjustement += 0x6;
+                adjustement |= 0x6;
             }
             if (FlagC)
             {
-                adjustement += 0x60;
+                adjustement |= 0x60;
             }
             if (adjustement > A)
             {
@@ -1055,11 +1064,11 @@ public class Cpu
         {
             if (FlagH || (A & 0xF) > 0x9)
             {
-                adjustement += 0x6;
+                adjustement |= 0x6;
             }
             if (FlagC|| A > 0x99)
             {
-                adjustement += 0x60;
+                adjustement |= 0x60;
                 FlagC = true;
             }
 
@@ -2338,10 +2347,10 @@ public class Cpu
     /// <returns>The rotated value</returns>
     private byte RRC(byte registerVal)
     {
-        FlagC = (registerVal & 0x80) == 0x80;
+        FlagC = (registerVal & 0x1) == 0x1;
         FlagN = false;
         FlagH = false;
-        byte retVal = FlagC ? (byte)((registerVal >> 1) | 0x1) : (byte)(registerVal << 1);
+        byte retVal = FlagC ? (byte)((registerVal >> 1) | 0x80) : (byte)(registerVal >> 1);
         FlagZ = retVal == 0x0;
         return retVal;
     }

@@ -18,8 +18,10 @@
 
 # Todo 
 
-## Implementing OAM and object drawing
+## Fix instructions :
+E8: ADD SP, e8
+D8: LD HL, SP + e8
 
-### Refactoring existing
-- [ ] Check for `LCDC bit 0` which is bool `PPU.IsBackgroundAndWindowEnabled`, if unset, the window and background are printed white but objects still appear (if set)
-- 
+### Test 11
+CB 0E CB 2E CB 3E
+
