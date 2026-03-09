@@ -435,9 +435,13 @@ public class Ppu : IMemoryMappedDevice
 
                         // To remove, I think it's just that objects can be located outside viewport...
                         bool isCrashing = startIndex + xPix >= Width * Height;
-                        if (isCrashing)
+                        if (startIndex + xPix >= Width * Height)
                         {
-                            Console.WriteLine("This would have crash");
+                            Console.WriteLine($"After framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
+                        }
+                        else if (startIndex + xPix < 0)
+                        {
+                            Console.WriteLine($"Before framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
                         }
                         else
                         {
