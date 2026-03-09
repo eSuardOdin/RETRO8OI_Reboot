@@ -1043,9 +1043,9 @@ public class Cpu
     /// <returns>Number of cycles used</returns>
     private int DAA()
     {
-        byte adjustement = 0;
         if (FlagN)
         {
+            byte adjustement = 0;
             if (FlagH)
             {
                 adjustement |= 0x6;
@@ -1054,14 +1054,11 @@ public class Cpu
             {
                 adjustement |= 0x60;
             }
-            if (adjustement > A)
-            {
-                FlagC = true;
-            }
             A -= adjustement;
         }
         else
         {
+            byte adjustement = 0;
             if (FlagH || (A & 0xF) > 0x9)
             {
                 adjustement |= 0x6;
@@ -1071,14 +1068,8 @@ public class Cpu
                 adjustement |= 0x60;
                 FlagC = true;
             }
-
-            if (((int)A + (int)adjustement) > 0xFF)
-            {
-                FlagC = true;
-            }
             A += adjustement;
         }
-
         FlagZ = A == 0;
         FlagH = false;
         return 4;
