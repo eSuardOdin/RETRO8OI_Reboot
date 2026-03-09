@@ -1045,6 +1045,10 @@ public class Cpu
             {
                 adjustement += 0x60;
             }
+            if (adjustement > A)
+            {
+                FlagC = true;
+            }
             A -= adjustement;
         }
         else
@@ -1059,8 +1063,15 @@ public class Cpu
                 FlagC = true;
             }
 
+            if (((int)A + (int)adjustement) > 0xFF)
+            {
+                FlagC = true;
+            }
             A += adjustement;
         }
+
+        FlagZ = A == 0;
+        FlagH = false;
         return 4;
     }
     
@@ -1119,11 +1130,12 @@ public class Cpu
     private void ADC(byte operand)
     {
         int newVal = A + operand;
-        newVal += FlagC ? 1 : 0;
+        int carry = FlagC ? 1 : 0;
+        newVal += carry;
         // Set flags
         FlagZ = (byte)newVal == 0;
         FlagN = false;
-        FlagH = (((A & 0x0F) + (operand & 0x0F)) & 0x10) == 0x10;
+        FlagH = (((A & 0x0F) + (operand & 0x0F) + carry) & 0x10) == 0x10;
         FlagC = newVal > 0xFF;
 
         A = (byte)newVal;
@@ -1150,8 +1162,8 @@ public class Cpu
         // Set flags
         FlagZ = (byte)newVal == 0;
         FlagN = true;
-        FlagH = (A & 0x0F) < ((operand + cb) & 0x0F);
-        FlagC = (operand + cb) > A;
+        FlagH = (A & 0x0F) - ((operand & 0x0F) + cb) < 0;
+        FlagC = A < operand + cb;
 
         A = (byte)newVal;
     }

@@ -24,6 +24,7 @@ public class Gameboy
     public Cartridge? Cartridge { get; private set; }
     public Joypad Joypad { get; private set; }
     public Serial Serial { get; private set; }
+    public CgbAdresses CgbAdresses { get; private set; }
     
     public DebugUnknownAdresses DebugAdresses { get; private set; } 
 
@@ -50,7 +51,7 @@ public class Gameboy
         Cartridge = null;
         Joypad = new Joypad(Bus);
         Serial = new Serial();
-        
+        CgbAdresses = new CgbAdresses();
         // Debug 
         //DebugAdresses = new DebugUnknownAdresses();
         
@@ -67,6 +68,7 @@ public class Gameboy
         Bus.Map(Joypad);
         Bus.Map(Serial);
         //Bus.Map(DebugAdresses);
+        Bus.Map(CgbAdresses);
     }
 
     // private void DisablePpuStateLine()

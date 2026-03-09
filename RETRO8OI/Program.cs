@@ -3,6 +3,7 @@
 using RETRO8OI;
 using RETRO8OI.MBCS;
 
+
 if (args.Length != 1)
 {
     Console.WriteLine("Usage: ./RETRO8OI <ROMFILE>");

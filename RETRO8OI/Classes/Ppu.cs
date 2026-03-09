@@ -434,16 +434,15 @@ public class Ppu : IMemoryMappedDevice
                         byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
 
                         // To remove, I think it's just that objects can be located outside viewport...
-                        bool isCrashing = startIndex + xPix >= Width * Height;
-                        if (startIndex + xPix >= Width * Height)
-                        {
-                            Console.WriteLine($"After framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
-                        }
-                        else if (startIndex + xPix < 0)
-                        {
-                            Console.WriteLine($"Before framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
-                        }
-                        else
+                        // if (startIndex + xPix >= Width * Height)
+                        // {
+                        //     Console.WriteLine($"After framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
+                        // }
+                        // else if (startIndex + xPix < 0)
+                        // {
+                        //     Console.WriteLine($"Before framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
+                        // }
+                        if(!(startIndex + xPix >= Width * Height || startIndex + xPix < 0))
                         {
                             // Put in Framebuffer
                             FrameBuffer[startIndex + xPix] = colorIndex;
