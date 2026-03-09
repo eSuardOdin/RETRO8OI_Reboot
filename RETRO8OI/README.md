@@ -23,5 +23,8 @@ E8: ADD SP, e8
 D8: LD HL, SP + e8
 
 ### Test 11
-CB 0E CB 2E CB 3E
+CB 0E -> Fait 
+CB 2E -> SRA HL / Fait
+CB 3E -> SRL HL / Fait
+27
 

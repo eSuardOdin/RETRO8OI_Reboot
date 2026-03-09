@@ -1567,7 +1567,8 @@ public class Cpu
                         L = SRA(L);
                         return 8;
                     case 0xE:   // SRA [HL]
-                        WriteBus(HL, SRA(ReadBus(HL)));
+                        byte val = ReadBus(HL);
+                        WriteBus(HL, SRA(val));
                         return 16;
                     case 0xF:   // SRA A
                         A = SRA(A);
@@ -1622,7 +1623,9 @@ public class Cpu
                         L = SRL(L);
                         return 8;
                     case 0xE:   // SRL [HL]
-                        WriteBus(HL, SRL(ReadBus(HL)));
+                        byte val = ReadBus(HL);
+                        WriteBus(HL, SRL(val));
+                        byte newVal = ReadBus(HL);
                         return 16;
                     case 0xF:   // SRL A
                         A = SRL(A);
@@ -2378,11 +2381,12 @@ public class Cpu
     /// <returns>The rotated value</returns>
     private byte SRA(byte registerVal)
     {
-        FlagC = (registerVal & 0x10) == 0x10;
+        FlagC = (registerVal & 0x1) == 0x1;
         byte bit7 = (registerVal & 0x80) == 0x80 ? (byte)0x80 : (byte)0x0;
         FlagN = false;
         FlagH = false;
         byte retVal = (byte)((registerVal >> 1) | bit7);
+        //byte retVal = (byte)((registerVal >> 1) & 0x7F);
         FlagZ = retVal == 0x0;
         return retVal;
     }
@@ -2394,7 +2398,7 @@ public class Cpu
     /// <returns>The rotated value</returns>
     private byte SRL(byte registerVal)
     {
-        FlagC = (registerVal & 0x80) == 0x80;
+        FlagC = (registerVal & 0x1) == 0x1;
         FlagN = false;
         FlagH = false;
         byte retVal = (byte)(registerVal >> 1);
