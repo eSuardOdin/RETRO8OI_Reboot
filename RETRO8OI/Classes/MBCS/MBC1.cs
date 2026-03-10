@@ -38,7 +38,6 @@ public class MBC1 : IMBC
     /// </summary>
     public byte Mode { get; private set; }
     
-    
     public byte[] Rom { get; private set; }
     public byte[]? Ram { get; private set; }
     public MBC1(byte[] rom, byte[]? ram)
@@ -127,6 +126,8 @@ public class MBC1 : IMBC
             // Wrapping in case of not existing bank
             return Ram[(offset + (GetRamBank() * 0x2000)) % Ram.Length];
         }
+
+        return 0xFF;
         throw new InvalidBusRoutingException($"Address {address:X2} is out of cartridge mapped memory range.");
     }
 
@@ -155,7 +156,7 @@ public class MBC1 : IMBC
             data = 0x1;
         }
         // Get only the 5 first bits
-        BankRegister1 = (byte)(data & 0x3F);
+        BankRegister1 = data;
     }
     
     /// <summary>
@@ -189,7 +190,8 @@ public class MBC1 : IMBC
 
         if (Mode == 0x0)
         {
-            Ram[address] = data;
+            // Write after removing offstet
+            Ram[address - 0xA000] = data;
         }
         else
         {

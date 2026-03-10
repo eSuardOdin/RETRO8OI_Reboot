@@ -47,8 +47,30 @@ unused_hwio-GS.gb FAILED
 ;   3. compare VALUE & MASK with EXPECTED & MASK
 ```
 
+## MBC1
 
-
+; Tests that BANK1 is mapped to correct addresses and has the right initial
+; value.
+```
+bits_bank1.gb PASSED
+; Tests that BANK1 is mapped to correct addresses and has the right initial
+; value.
+```
+```
+bits_bank2.gb PASSED
+; Tests that BANK2 is mapped to correct addresses and has the right initial
+; value.
+```
+```
+bits_mode.gb FAILED
+; Tests that MODE is mapped to correct addresses and has the right initial
+; value.
+```
+```
+bits_ramg.gb PASSED
+; Tests that RAMG is mapped to correct addresses, and RAM disable/enable
+; happens with the right data values.
+```
 
 
 # Misc instruction -> WTF
