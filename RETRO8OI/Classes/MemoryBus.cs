@@ -21,8 +21,8 @@ public class MemoryBus
                 return dev.Read(address);
             }
         }
-        throw new Exception($"Address [0x{address:X4}] not mapped yet.");
         return 0xFF;
+        //throw new Exception($"Address [0x{address:X4}] not mapped yet.");
     }
 
     public void Write(ushort address, byte data)

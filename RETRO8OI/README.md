@@ -13,6 +13,11 @@
 `C000-DFFF` for WRAM R/W
 `E000-FDFF` for Echo RAM -> Usage prohibited by Nintendo (May remove)
 
+# TODO
+
+My emulator does not render big sprites. Check with BGB their location on ROM to see why.
+
+Pokemon Yellow does not work at all (Maybe because of CGB enhancement)
 
 
 
@@ -115,9 +120,3 @@ rom_8Mb.gb PASSED
 ; Tests banking behaviour of a MBC1 cart with a 8 Mbit ROM
 ```
 
-
-# Misc instruction -> WTF
-
-# 10
-CB 8C:   RES 1, H
-CB CC:   SET 1, H

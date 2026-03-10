@@ -52,8 +52,8 @@ public class Gameboy
         Joypad = new Joypad(Bus);
         Serial = new Serial();
         CgbAdresses = new CgbAdresses();
-        // Debug 
-        //DebugAdresses = new DebugUnknownAdresses();
+        // // Debug 
+        // DebugAdresses = new DebugUnknownAdresses();
         
         Cpu = new Cpu(Bus, Ppu);
         //Cpu.OnStateInterrupt += DisablePpuStateLine;
@@ -67,7 +67,7 @@ public class Gameboy
         Bus.Map(Timer);
         Bus.Map(Joypad);
         Bus.Map(Serial);
-        //Bus.Map(DebugAdresses);
+        // Bus.Map(DebugAdresses);
         Bus.Map(CgbAdresses);
     }
 

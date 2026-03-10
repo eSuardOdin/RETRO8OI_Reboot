@@ -92,10 +92,10 @@ public class MBC5 : IMBC
         {
             WriteRam(data, address);
         }
-        else
-        {
-            throw new InvalidBusRoutingException($"Address {address:X2} is out of cartridge mapped memory range.");
-        }
+        // else
+        // {
+        //     throw new InvalidBusRoutingException($"Address {address:X2} is out of cartridge mapped memory range.");
+        // }
     }
 
 
