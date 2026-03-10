@@ -426,6 +426,12 @@ public class Ppu : IMemoryMappedDevice
                     byte lo_b = (byte)((lo >> (7 - p)) & 1);
                     
                     byte paletteIndex = (byte) (lo_b | (hi_b<<1));
+                    // Exit if out of FrameBuffer bounds
+                    if (startIndex + xPix >= Width * Height ||
+                        startIndex + xPix < 0)
+                    {
+                        continue;
+                    }
                     // Check for priority
                     //if ((isOverBG && paletteIndex != 0) || (!isOverBG && paletteIndex == 0))
                     if (paletteIndex != 0 && (isOverBG || FrameBuffer[startIndex + xPix] == 0))

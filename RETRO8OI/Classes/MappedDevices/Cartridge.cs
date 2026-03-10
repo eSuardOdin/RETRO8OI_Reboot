@@ -296,6 +296,11 @@ public class Cartridge : IMemoryMappedDevice
             case 0x03:
                 _mbc = new MBC1(Rom, Ram);
                 break;
+            case 0x19:
+            case 0x1A:
+            case 0x1B:
+                _mbc = new MBC5(Rom, Ram);
+                break;
             default:
                 throw new InvalidMBCException($"The MBC type {_header.Type} ({HeaderConstants.GetCartType(_header.Type)}) is invalid or not implemented yet");
         }
