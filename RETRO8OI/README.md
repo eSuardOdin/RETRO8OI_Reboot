@@ -16,15 +16,43 @@
 
 
 
-# Todo 
+# Mooneye test suite
 
-## Fix instructions :
-E8: ADD SP, e8
-D8: LD HL, SP + e8
+## Acceptance
 
-### Test 11
-CB 0E -> Fait 
-CB 2E -> SRA HL / Fait
-CB 3E -> SRL HL / Fait
-27
+### Bits
+```
+mem_oam.gb PASSED
+; This test checks that the OAM area has no unused bits
+; On DMG the sprite flags have unused bits, but they are still
+; writable and readable normally
+```
 
+```
+reg_f.gb PASSED
+; This test checks that bottom 4 bits of the F register always return 0
+```
+
+```
+unused_hwio-GS.gb FAILED
+; This test checks all unused bits in working $FFxx IO,
+; and all unused $FFxx IO. Unused bits and unused IO all return 1s.
+; A test looks like this:
+;
+;            mask      write     expected
+; test REG   MASK      WRITE     EXPECTED
+;
+;   1. write WRITE to REG
+;   2. read VALUE from REG
+;   3. compare VALUE & MASK with EXPECTED & MASK
+```
+
+
+
+
+
+# Misc instruction -> WTF
+
+# 10
+CB 8C:   RES 1, H
+CB CC:   SET 1, H

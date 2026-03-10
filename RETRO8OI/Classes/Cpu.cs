@@ -864,7 +864,7 @@ public class Cpu
                     case 0x2:   // JP NC, a16
                         return JP(true, !FlagC);
                     case 0x3:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0x4:   // CALL NC, a16
                         return CALL(true, !FlagC);
                     case 0x5:   // PUSH DE
@@ -884,12 +884,12 @@ public class Cpu
                     case 0xA:   // JP C, a16
                         return JP(true, FlagC);
                     case 0xB:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode:X2}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode:X2}] not implemented (ILLEGAL OPCODE).");
                     case 0xC:   // CALL C, a16
                         return CALL(true, FlagC);
                     case 0xD:   // ILLEGAL
                         // throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
-                        Console.WriteLine($"Instruction [{opcode:X2}] not implemented (ILLEGAL OPCODE).");
+                        //Console.WriteLine($"Instruction [{opcode:X2}] not implemented (ILLEGAL OPCODE).");
                         return 0;
                     case 0xE:   // SBC A, n8
                         SBC(ReadBus(PC++));
@@ -926,18 +926,15 @@ public class Cpu
                     case 0x8:   // ADD SP, e8
                         int d = ReadBus(PC++);
                         sbyte data = (sbyte)d;
-                        Console.WriteLine($"E8 (Add SP, e8)\nData: {d}, Signed: {data}\nSP: {SP:X4}");
+                        Console.WriteLine($"[E8] ADD SP, {data} ({data:b8})\t\tSP: {SP} ({SP:b8})");
                         // Set flags
-                        FlagC = (SP + data) > 0xFFFF;
-                        Console.WriteLine($"SP + DATA = {(SP+data):X}");
-                        if(FlagC) Console.WriteLine($"Carry flag set");
+                        FlagC = data > 0 ? (SP + data) > 0xFF : (SP & 0xFF) + data < 0;
                         // FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
-                        FlagH = data > 0 ? (SP & 0xFF) + (data & 0xFF) > 0xFF : (SP & 0xFF) + data < 0;
-                        if(FlagH) Console.WriteLine($"Half-Carry flag set");
+                        FlagH = data > 0 ? (SP & 0xF) + (data & 0xF) > 0xF : (SP & 0xF) + data < 0;
                         FlagZ = false;
                         FlagN = false;
                         SP = (ushort)(SP + data);
-                        Console.WriteLine($"FINAL SP = {(ushort)(SP+data):X}");
+                        Console.WriteLine($"\tResult: {SP:b8} |\tH: {(FlagH?1:0)} |\tC: {(FlagC?1:0)}");
                         return 16;
                     case 0x9:   // JP HL
                         PC = HL;
@@ -949,11 +946,11 @@ public class Cpu
                         WriteBus((ushort)((hi << 8) | lo), A);
                         return 16;
                     case 0xB:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xC:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xD:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xE:   // XOR A, n8
                         XOR(ReadBus(PC++));
                         return 8;
@@ -978,7 +975,7 @@ public class Cpu
                         IME = false;
                         return 4;
                     case 0x4:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0x5:   // PUSH AF
                         PUSH(AF);
                         return 16;
@@ -1016,9 +1013,9 @@ public class Cpu
                         IMEEnable = true;
                         return 4;
                     case 0xC:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xD:   // ILLEGAL
-                        throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
+                        //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0xE:   // CP A, n8
                         CP(ReadBus(PC++));
                         return 8;
@@ -1885,7 +1882,7 @@ public class Cpu
                         E = RES( 0x2,E);
                         return 8;
                     case 0xC:   // RES 1, H
-                        C = RES( 0x2,H);
+                        H = RES( 0x2,H);
                         return 8;
                     case 0xD:   // RES 1, L
                         L = RES( 0x2,L);
@@ -2105,7 +2102,7 @@ public class Cpu
                         E = SET( 0x2,E);
                         return 8;
                     case 0xC:   // SET 1, H
-                        C = SET( 0x2,H);
+                        H = SET( 0x2,H);
                         return 8;
                     case 0xD:   // SET 1, L
                         L = SET( 0x2,L);
