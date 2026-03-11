@@ -15,7 +15,6 @@ public class Ppu : IMemoryMappedDevice
         {
             if (_mode != value)
             {
-                //Console.WriteLine($"Changing from mode {_mode} to mode {value}");
                 _mode = value;
             
                 // STAT Update
@@ -128,7 +127,6 @@ public class Ppu : IMemoryMappedDevice
         // Check if LCD is enabled
         if (IsLcdPpuEnabled)
         {
-            //Console.WriteLine($"LCD Enabled: \n\tENTERING: Mode {Mode}, dots to consume {cycles}");
             switch (Mode) // Switch mode
             {
                 case 2: // OAM Scan
@@ -210,19 +208,12 @@ public class Ppu : IMemoryMappedDevice
                 OAM[OamDmaCyclesDone / 4] = Bus.Read(OamDmaAddr);
                 OamDmaAddr++;
             }
-            //Console.WriteLine($"M-Cycles: {OamDmaCyclesDone / 4} | T-Cycles: {OamDmaCyclesDone}");
             OamDmaCyclesDone++;
             // Check if OAM DMA done
             if (OamDmaCyclesDone >= OAM.Length * 4)
             {
                 // Event to signal OAM DMA ended
                 OnOamDmaEvent(false);
-                // Debug OAM contains : 
-                /*for (int j = 0; j < OAM.Length; j += 4)
-                {
-                    Console.WriteLine($"{OAM[j]:X4} {OAM[j+1]:X4} {OAM[j+2]:X4} {OAM[j+3]:X4}");
-                }
-                Console.WriteLine("****************************************");*/
                 return;
             }
         }
@@ -506,10 +497,6 @@ public class Ppu : IMemoryMappedDevice
         if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
         {
             Vram[address - 0x8000] = data;
-            // if (address == 0x9150)
-            // {
-            //     Console.WriteLine($"[{address:X4}] {data:X2}");
-            // }
             return;
         }
         // Write to OAM only if mode 0 or 1 (VBlank, HBlank)
@@ -571,13 +558,11 @@ public class Ppu : IMemoryMappedDevice
         // Read VRAM
         if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
         {
-            //Console.WriteLine($"Reading VRAM [{address:X4}]");
             return Vram[address - 0x8000];
         }
         // Read OAM
         if (address >= 0xFE00 && address <= 0xFE9F && Mode < 2)
         {
-            //Console.WriteLine($"Reading OAM [{address:X4}]");
             return OAM[address - 0xFE00];
         }
         // Read LCD stuff
@@ -592,28 +577,20 @@ public class Ppu : IMemoryMappedDevice
                 case 0xFF49:
                     return OBP1;
                 case 0xFF40:
-                    //Console.WriteLine($"Reading LCDC [{address:X4}]");
                     return LCDC;
                 case 0xFF44:
-                    //Console.WriteLine($"Reading LY [{address:X4}]");
                     return LY;
                 case 0xFF45:
-                    //Console.WriteLine($"Reading LYC [{address:X4}]");
                     return LYC;
                 case 0xFF41:
-                    //Console.WriteLine($"Reading LCD STAT [{address:X4}]");
                     return STAT;
                 case 0xFF42:
-                    //Console.WriteLine($"Reading SCY [{address:X4}]");
                     return SCY;
                 case 0xFF43:
-                    //Console.WriteLine($"Reading SCX [{address:X4}]");
                     return SCX;
                 case 0xFF4A:
-                    //Console.WriteLine($"Reading WY [{address:X4}]");
                     return WY;
                 case 0xFF4B:
-                    //Console.WriteLine($"Reading WX [{address:X4}]");
                     return WX;
             }
         }
