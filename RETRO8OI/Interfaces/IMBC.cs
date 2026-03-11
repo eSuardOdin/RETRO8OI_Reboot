@@ -8,4 +8,6 @@ public interface IMBC
 {
     public void Write(ushort address, byte data);
     public byte Read(ushort address);
+    public void Save(string path);
+    public void Load(string path);
 }

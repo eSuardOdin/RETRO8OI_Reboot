@@ -35,6 +35,14 @@ public class NoMBC : IMBC
         return 0xFF;
     }
 
+    public void Save(string path)
+    {
+    }
+
+    public void Load(string path)
+    {
+    }
+
     public void Write(ushort address, byte data)
     {
         if( Ram != null && 

@@ -1,4 +1,5 @@
 using SDL3;
+using System.IO;
 using System.Diagnostics;
 using RETRO8OI.Exceptions;
 
@@ -96,6 +97,8 @@ public class Gameboy
         {
             throw new InvalidRomException("Cartridge not initialized");
         }
+        // Load data
+        Load();
         
         _runningGame = true;
         
@@ -164,8 +167,33 @@ public class Gameboy
         }
         
         SDL.Quit();
-        
+        Save();
     }
-    
+
+    private void Load()
+    {
+        if (Cartridge.HasBattery)
+        {
+            Console.WriteLine(Path.GetFileNameWithoutExtension(Cartridge.Filename) + " has battery");
+            if (!File.Exists(Path.GetFileNameWithoutExtension(Cartridge.Filename) + ".sav"))
+            {
+                Console.WriteLine("Creating savefile");
+                File.Create(Path.GetFileNameWithoutExtension(Cartridge.Filename) + ".sav");
+            }
+            else
+            {
+                Console.WriteLine("Loading savefile");
+                Cartridge.Load();
+            }
+        }
+    }
+
+    private void Save()
+    {
+        if (Cartridge.HasBattery)
+        {
+            Cartridge.Save();
+        }
+    }
 
 }

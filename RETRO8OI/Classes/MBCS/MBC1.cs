@@ -224,18 +224,13 @@ public class MBC1 : IMBC
     }
 
 
-    public void DebugRegisters()
+    public void Save(string path)
     {
-        Console.WriteLine();
-        Console.WriteLine("-------- MBC1 REGISTERS --------");
-        Console.WriteLine($"RAM Gate Register      0b{RamGateRegister:b8} / 0x{RamGateRegister:X2}");
-        Console.WriteLine($"BANK 1 Register        0b{BankRegister1:b8} / 0x{BankRegister1:X2}");
-        Console.WriteLine($"BANK 2 Register        0b{BankRegister2:b8} / 0x{BankRegister2:X2}");
-        Console.WriteLine($"Mode                   0b{Mode:b8} / 0x{Mode:X2}");
-        Console.WriteLine("-------- MBC1 BANKS     --------");
-        Console.WriteLine($"0x0000-0x3FFF Bank     0b{GetRomBankMod1():b8} / 0x{GetRomBankMod1():X2}");
-        Console.WriteLine($"0x4000-0x7FFF Bank     0b{GetRomBank():b8} / 0x{GetRomBank():X2}");
-        Console.WriteLine("********************************************************************");
-        
+        File.WriteAllBytes(path, Ram);
+    }
+
+    public void Load(string path)
+    {
+        Ram = File.ReadAllBytes(path);
     }
 }

@@ -31,14 +31,7 @@ public class MBC5 : IMBC
 
     private bool IsExternalRam => (RamGateRegister & 0xF) == 0xA;
     private bool IsRumble => (ExternalRamBank & 0b1000) == 0x1000;
-    /// <summary>
-    /// Accessed from 0x6000 to 0x7FFF - Write ONLY register
-    /// <para>1-bit register to specify what bank Register 2 affects access to :<br/>
-    /// Mode == 0 : BankRegister2 affect only accesses to 0x4000 - 0x7FFF<br/>
-    /// Mode == 1 : BankRegister2 affects accesses to 0x000 - 0x3FFF (ROM 0), 0x4000 - 0x7FFF (ROM 1),
-    /// 0xA000 - 0xBFFF (SRAM)</para>
-    /// </summary>
-    public byte Mode { get; private set; }
+
     
     public byte[] Rom { get; private set; }
     public byte[]? Ram { get; private set; }
@@ -50,8 +43,6 @@ public class MBC5 : IMBC
         BankRegister1 = 0x1;
         // Initial value of Bank Register 2
         BankRegister2 = 0x0;
-        // Initial value of Mode
-        Mode = 0x0;
         
         // Set ROM and RAM
         Rom = rom;
@@ -138,16 +129,10 @@ public class MBC5 : IMBC
         // Ignore writing if Ram gate Register disabled or no RAM
         if(RamGateRegister != 0xA || Ram == null) return;
 
-        if (Mode == 0x0)
-        {
-            // Write after removing offstet
-            Ram[address - 0xA000] = data;
-        }
-        else
-        {
-            int offset =  address - 0xA000;
-            Ram[(offset + (GetRamBank() * 0x2000)) % Ram.Length] = data;
-        }
+        
+        int offset =  address - 0xA000;
+        Ram[(offset + (GetRamBank() * 0x2000)) % Ram.Length] = data;
+        
     }
 
 
@@ -159,18 +144,22 @@ public class MBC5 : IMBC
         return (ushort)(bankRegister & bankMask);
     }
 
-    // private ushort GetRomBankMod1()
-    // {
-    //     // Get the number of banks to mask it against the bank register
-    //     ushort bankMask = (ushort)((Rom.Length / 0x4000) - 1);
-    //     ushort bankRegister = (ushort)(0x0 | (BankRegister2 << 9));
-    //     return (ushort)(bankRegister & bankMask);
-    // }
         
     private byte GetRamBank()
     {
         if(Ram == null) return 0;
         return ExternalRamBank;
+    }
+    
+    
+    public void Load(string path)
+    {
+        Ram = File.ReadAllBytes(path);
+    }
+    
+    public void Save(string path)
+    {
+        File.WriteAllBytes(path, Ram);
     }
 
 }

@@ -113,6 +113,7 @@ public class Cartridge : IMemoryMappedDevice
         Rom = File.ReadAllBytes(filename);
         Filename = Path.GetFileName(filename);
         FillHeader();
+        
         //DEBUG
         Title = System.Text.Encoding.ASCII.GetString(_header.Title).Substring(0, 4);
         
@@ -284,22 +285,26 @@ public class Cartridge : IMemoryMappedDevice
     
     private void GetMBC()
     {
+        HasBattery = false;
         switch (_header.Type)
         {
             case 0x00:
             case 0x08:
             case 0x09:
                 _mbc = new NoMBC(Rom, Ram);
+                if (_header.Type == 0x09) HasBattery = true;
                 break;
             case 0x01:
             case 0x02:
             case 0x03:
                 _mbc = new MBC1(Rom, Ram);
+                if (_header.Type == 0x03) HasBattery = true;
                 break;
             case 0x19:
             case 0x1A:
             case 0x1B:
                 _mbc = new MBC5(Rom, Ram);
+                if (_header.Type == 0x1B) HasBattery = true;
                 break;
             default:
                 throw new InvalidMBCException($"The MBC type {_header.Type} ({HeaderConstants.GetCartType(_header.Type)}) is invalid or not implemented yet");
@@ -343,6 +348,20 @@ public class Cartridge : IMemoryMappedDevice
                 //Console.WriteLine($"Cart RAM size = 0 KiB");
                 break;
         }
+
     }
     
+    /// <summary>
+    /// Load the external ram 
+    /// </summary>
+    public void Load()
+    {
+        _mbc.Load(Path.GetFileNameWithoutExtension(Filename)  + ".sav");
+    }
+
+
+    public void Save()
+    {
+        _mbc.Save(Path.GetFileNameWithoutExtension(Filename)  + ".sav");
+    }
 }
