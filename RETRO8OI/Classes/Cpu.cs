@@ -100,16 +100,8 @@ public class Cpu
             IMEEnable = false;
         }
         
-        // DEBUG
-        if (HL == 0x9150 && PC == 0x1E7A)
-        {
-            Console.WriteLine("Même point que BGB");
-        }
-        
         // Get the current opcode
         byte opcode = ReadBus(PC++);
-        // DEBUG ARRAY
-        ExecutedDebug[opcode] = true;
         
         // If halt bug
         if (HaltBug)
@@ -117,20 +109,6 @@ public class Cpu
             PC--;
             HaltBug = false;
         }
-
-        // if ((opcode == 0x4F) && (PC == 0x29D5))
-        // {
-        //     Console.WriteLine($"Il y a {A:b8} dans le registre A.");
-        //     if (A != 0)
-        //     {
-        //         Console.WriteLine("Bouton appuyé !");
-        //     }
-        // }
-        
-        // if ((opcode == 0xC9) && (PC == 0x29E3))
-        // {
-        //     Console.WriteLine($"Return from func (getInputs ?)");
-        // }
         
         int cycles = 0;
         // --- Decode ---
