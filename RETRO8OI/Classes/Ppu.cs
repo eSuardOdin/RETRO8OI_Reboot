@@ -278,7 +278,6 @@ public class Ppu : IMemoryMappedDevice
         byte hi = 0;
         byte hi_b, lo_b;
         
-        
         for (int x = 0; x < Width; x++)
         {
             // Color index = 0 if LCDC bit 0 is unset
@@ -304,6 +303,7 @@ public class Ppu : IMemoryMappedDevice
                     {
                         // Get the tilemap index with suppressing VRAM offset (0x8000)
                         byte tileIndex = Vram[(BGTileMapArea - 0x8000)+ (tileY * 0x20 + tileX)];
+
                         // If $8800 mode (index is signed)
                         if (TileDataAddress == 0x9000)
                         {
@@ -326,14 +326,15 @@ public class Ppu : IMemoryMappedDevice
                         
                         // Get the tilemap index with suppressing VRAM offset (0x8000)
                         byte tileIndex = Vram[(WindowTilemapAddress - 0x8000)+ (tileY * 0x20 + tileX)];
+                        
                         // If $8800 mode (index is signed)
                         if (TileDataAddress == 0x9000)
                         {
-                            
                             sbyte index = (sbyte)tileIndex;
                             short trueIndex = (short)(index * 0x10);
                             // Because base
                             Array.Copy(Vram, ((short)(0x1000 + trueIndex)), tile, 0, 16);
+                            
                         }
                         // Else if $8000 mode
                         else
@@ -395,14 +396,6 @@ public class Ppu : IMemoryMappedDevice
             // Get the objects that appears on the line
             if (line < (objY + spriteSize) && line >= objY)
             {
-                
-                //Console.WriteLine($"Y: {OAM[i]:X4}  X: {OAM[i+1]:X4}  Tile: {OAM[i+2]:X4}  Flags: {OAM[i+3]:X4}");
-                /*
-                if (i == 28)
-                {
-                    Console.WriteLine($"X: {objX} Y: {objY}");
-                }
-                */
                 // Set flag values
                 objInLine++;
                 bool isOverBG = (flags & 0x80) == 0;
@@ -439,15 +432,6 @@ public class Ppu : IMemoryMappedDevice
                         // Get the color depending on the palette
                         byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
 
-                        // To remove, I think it's just that objects can be located outside viewport...
-                        // if (startIndex + xPix >= Width * Height)
-                        // {
-                        //     Console.WriteLine($"After framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
-                        // }
-                        // else if (startIndex + xPix < 0)
-                        // {
-                        //     Console.WriteLine($"Before framebuffer (X: {(startIndex + xPix) % Height}  Y: {line} )");
-                        // }
                         if(!(startIndex + xPix >= Width * Height || startIndex + xPix < 0))
                         {
                             // Put in Framebuffer
@@ -522,6 +506,10 @@ public class Ppu : IMemoryMappedDevice
         if (address >= 0x8000 && address <= 0x9FFF && Mode != 3)
         {
             Vram[address - 0x8000] = data;
+            // if (address == 0x9150)
+            // {
+            //     Console.WriteLine($"[{address:X4}] {data:X2}");
+            // }
             return;
         }
         // Write to OAM only if mode 0 or 1 (VBlank, HBlank)
@@ -551,17 +539,7 @@ public class Ppu : IMemoryMappedDevice
                     OBP1 = data;
                     return;
                 case 0xFF40:    // LCDC
-                    // int wtilemap = LCDC & 0b01000000;
-                    // int bgtilemap = LCDC & 0b00001000;
                     LCDC = data;
-                    // if ((LCDC & 0b01000000) != wtilemap)
-                    // {
-                    //     Console.WriteLine($"LCDC -> Window tilemap (bit 6) changed on line {LY}. Value: {LCDC:b8}");
-                    // } 
-                    // else if ((LCDC & 0b00001000) != bgtilemap)
-                    // {
-                    //     Console.WriteLine($"LCDC -> BG tilemap (bit 6) changed on line {LY}. Value: {LCDC:b8}");
-                    // }
                     return;
                 case 0xFF44:    // LY
                     return;

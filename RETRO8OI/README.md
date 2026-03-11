@@ -16,6 +16,11 @@
 # TODO
 
 My emulator does not render big sprites. Check with BGB their location on ROM to see why.
+-> Values of window sprite is 0xFF.
+
+NEED TO DO A VRAM VIEWER
+
+
 
 Pokemon Yellow does not work at all (Maybe because of CGB enhancement)
 

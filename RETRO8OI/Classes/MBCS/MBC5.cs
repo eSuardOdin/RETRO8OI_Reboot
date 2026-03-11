@@ -71,7 +71,7 @@ public class MBC5 : IMBC
         // Write to ROM
         if (address <= 0x1FFF)
         {
-            RamGateRegister = (byte)(data & 0b11);
+            RamGateRegister = (byte)(data & 0xF);
         }
         // Write first 8 least significant bits of ROM bank number 
         else if (address <= 0x2FFF)
@@ -104,13 +104,7 @@ public class MBC5 : IMBC
         // Get first banking ROM space (0000-3FFF)
         if(address <= 0x3FFF)
         {
-            // If mode 0, just read address
-            if (Mode == 0x0)
-            {
-                return Rom[address];    
-            }
-            // Else, add bank number * 0x4000
-            return Rom[address + (GetRomBankMod1() * 0x4000)];
+            return Rom[address];
         }
         // Get second banking ROM space (4000-7FFF)
         if (address <= 0x7FFF)
@@ -123,10 +117,6 @@ public class MBC5 : IMBC
         if (IsExternalRam && Ram != null && address >= 0xA000 && address <= 0xBFFF)
         {
             int offset = address - 0xA000;
-            // if (Mode == 0x0)
-            // {
-            //     return Ram[offset % Ram.Length];
-            // }
             // Wrapping in case of not existing bank
             return Ram[(offset + (GetRamBank() * 0x2000)) % Ram.Length];
         }
@@ -136,25 +126,8 @@ public class MBC5 : IMBC
     }
     
     
-    /// <summary>
-    /// Sets the bank Register 1<br/>
-    /// </summary>
-    /// <param name="data">The data to write</param>
-    private void WriteBankRegister2(byte data)
-    {
-        // Get only the 2 first bits
-        BankRegister2 = (byte)(data & 0x3);
-    }
 
-
-    /// <summary>
-    /// Sets or unset mode Register
-    /// </summary>
-    /// <param name="data">The data to write</param>
-    private void WriteMode(byte data)
-    {
-        Mode = (byte)(data & 0x1);
-    }
+    
 
     /// <summary>
     /// Writes the specified data to RAM with banking depending on mode Register.
@@ -186,13 +159,13 @@ public class MBC5 : IMBC
         return (ushort)(bankRegister & bankMask);
     }
 
-    private ushort GetRomBankMod1()
-    {
-        // Get the number of banks to mask it against the bank register
-        ushort bankMask = (ushort)((Rom.Length / 0x4000) - 1);
-        ushort bankRegister = (ushort)(0x0 | (BankRegister2 << 5));
-        return (ushort)(bankRegister & bankMask);
-    }
+    // private ushort GetRomBankMod1()
+    // {
+    //     // Get the number of banks to mask it against the bank register
+    //     ushort bankMask = (ushort)((Rom.Length / 0x4000) - 1);
+    //     ushort bankRegister = (ushort)(0x0 | (BankRegister2 << 9));
+    //     return (ushort)(bankRegister & bankMask);
+    // }
         
     private byte GetRamBank()
     {
@@ -201,18 +174,18 @@ public class MBC5 : IMBC
     }
 
 
-    public void DebugRegisters()
-    {
-        Console.WriteLine();
-        Console.WriteLine("-------- MBC1 REGISTERS --------");
-        Console.WriteLine($"RAM Gate Register      0b{RamGateRegister:b8} / 0x{RamGateRegister:X2}");
-        Console.WriteLine($"BANK 1 Register        0b{BankRegister1:b8} / 0x{BankRegister1:X2}");
-        Console.WriteLine($"BANK 2 Register        0b{BankRegister2:b8} / 0x{BankRegister2:X2}");
-        Console.WriteLine($"Mode                   0b{Mode:b8} / 0x{Mode:X2}");
-        Console.WriteLine("-------- MBC1 BANKS     --------");
-        Console.WriteLine($"0x0000-0x3FFF Bank     0b{GetRomBankMod1():b8} / 0x{GetRomBankMod1():X2}");
-        Console.WriteLine($"0x4000-0x7FFF Bank     0b{GetRomBank():b8} / 0x{GetRomBank():X2}");
-        Console.WriteLine("********************************************************************");
-        
-    }
+    // public void DebugRegisters()
+    // {
+    //     Console.WriteLine();
+    //     Console.WriteLine("-------- MBC1 REGISTERS --------");
+    //     Console.WriteLine($"RAM Gate Register      0b{RamGateRegister:b8} / 0x{RamGateRegister:X2}");
+    //     Console.WriteLine($"BANK 1 Register        0b{BankRegister1:b8} / 0x{BankRegister1:X2}");
+    //     Console.WriteLine($"BANK 2 Register        0b{BankRegister2:b8} / 0x{BankRegister2:X2}");
+    //     Console.WriteLine($"Mode                   0b{Mode:b8} / 0x{Mode:X2}");
+    //     Console.WriteLine("-------- MBC1 BANKS     --------");
+    //     Console.WriteLine($"0x0000-0x3FFF Bank     0b{GetRomBankMod1():b8} / 0x{GetRomBankMod1():X2}");
+    //     Console.WriteLine($"0x4000-0x7FFF Bank     0b{GetRomBank():b8} / 0x{GetRomBank():X2}");
+    //     Console.WriteLine("********************************************************************");
+    //     
+    // }
 }

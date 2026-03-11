@@ -99,6 +99,13 @@ public class Cpu
             IME = true;
             IMEEnable = false;
         }
+        
+        // DEBUG
+        if (HL == 0x9150 && PC == 0x1E7A)
+        {
+            Console.WriteLine("Même point que BGB");
+        }
+        
         // Get the current opcode
         byte opcode = ReadBus(PC++);
         // DEBUG ARRAY
