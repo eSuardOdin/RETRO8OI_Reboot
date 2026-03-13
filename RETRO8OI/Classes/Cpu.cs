@@ -2555,6 +2555,7 @@ public class Cpu
                 break;
             case 2 :
                 intStr = "Timer";
+                Console.WriteLine("Timer Interrupt");
                 break;
             case 3 :
                 intStr = "Serial";

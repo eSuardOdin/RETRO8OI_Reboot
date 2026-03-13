@@ -4,12 +4,12 @@ public class Timer : IMemoryMappedDevice
 {
     private MemoryBus Bus;
     private const int DIV_M_CYCLES = 256;
-    private byte TIMA { get; set; }
+    private ushort TIMA { get; set; }
     private byte TMA { get; set; }
     private byte TAC { get; set; }
     private int TimaTicks = 0;
 
-    private bool isTimaEnabled => (TAC & 0x3) == 0x3;
+    private bool isTimaEnabled => (TAC & 0x4) != 0;
 
     private int TIMA_M_CYCLES
     {
@@ -53,7 +53,7 @@ public class Timer : IMemoryMappedDevice
     private void UpdateDiv(int cycles)
     {
         DivTicks += cycles;
-        if (DivTicks >= DIV_M_CYCLES)
+        while (DivTicks >= DIV_M_CYCLES)
         {
             //Console.WriteLine($"DIV register incremented, now 0x{DIV:X2}.");
             DIV++;
@@ -70,7 +70,7 @@ public class Timer : IMemoryMappedDevice
             while (TimaTicks >= TIMA_M_CYCLES)
             {
                 TimaTicks -= TIMA_M_CYCLES;
-                if (TIMA == 0xFF)
+                if (TIMA == 0x100)
                 {
                     TIMA = TMA;
                     //Console.WriteLine($"TIMA Overflowed, now 0x{TIMA:X2}.");
@@ -117,7 +117,7 @@ public class Timer : IMemoryMappedDevice
             case 0xFF04:
                 return DIV;
             case 0xFF05:
-                return TIMA;
+                return (byte)TIMA;
             case 0xFF06:
                 return TMA;
             case 0xFF07:

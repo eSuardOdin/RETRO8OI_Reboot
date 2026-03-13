@@ -71,7 +71,7 @@ public class Ppu : IMemoryMappedDevice
         0xFFE0F8A0,
         0xFF88C070, 
         0xFF346856, 
-        0xFF081820 
+        0xFF081820,
     };
     uint[] DebugPalette = new uint[12]
     {
