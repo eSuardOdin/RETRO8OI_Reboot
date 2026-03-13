@@ -148,9 +148,10 @@ public class Cpu
                         A = (byte)((A << 1) | lo);
                         return 4;
                     case 0x8:   // LD [a16] SP
-                        ushort address = (ushort)(ReadBus((ushort)(PC + 1)) << 8 | ReadBus(PC));
+                        ushort address = (ushort)((ReadBus((ushort)(PC + 1)) << 8) | ReadBus(PC));
                         WriteBus(address, (byte)(SP & 0xFF));
                         WriteBus((ushort)(address+1), (byte)((SP >> 8) & 0xFF));
+                        PC += 2;
                         return 20;
                     case 0x9:   // ADD HL, BC
                         return HLADD(BC);
@@ -952,7 +953,13 @@ public class Cpu
                     case 0x0:   // LDH A, [a8]
                         return LDH(false, ReadBus(PC++));
                     case 0x1:   // POP AF
-                        AF = POP();
+                        // Mask F
+                        byte f = Bus.Read(SP);
+                        F = (byte)(f & 0xF0);
+                        SP++;
+                        byte a = Bus.Read(SP);
+                        A = a;
+                        SP++;
                         return 12;
                     case 0x2:   // LDH A, [C]
                         A = ReadBus((ushort)(0xFF00 | C));
@@ -963,7 +970,10 @@ public class Cpu
                     case 0x4:   // ILLEGAL
                         //throw new NotImplementedException($"Instruction [{opcode}] not implemented (ILLEGAL OPCODE).");
                     case 0x5:   // PUSH AF
-                        PUSH(AF);
+                        SP--;
+                        Bus.Write(SP, A);
+                        SP--;
+                        Bus.Write(SP, (byte)(F & 0xF0));
                         return 16;
                     case 0x6:   // OR A, n8
                         OR(ReadBus(PC++));
@@ -2557,6 +2567,7 @@ public class Cpu
                 break;
         }
         //Console.WriteLine($"Before interrupt, LCDC = {ReadBus(0xFF40):X4}, SP = {SP:X4}, PC = {PC:X4}");
+        //if(intStr != "VBlank")
         //Console.WriteLine($"Executing {intStr} interrupt. PC before: 0x{PC:X4}");
         //throw new Exception();
         if (Halted)

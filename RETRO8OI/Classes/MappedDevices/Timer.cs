@@ -75,7 +75,8 @@ public class Timer : IMemoryMappedDevice
                     TIMA = TMA;
                     //Console.WriteLine($"TIMA Overflowed, now 0x{TIMA:X2}.");
                     // Request TIMER interrupt
-                    Bus.Write(0xFF0F, 0x4);
+                    byte IF = Bus.Read(0xFF0F);
+                    Bus.Write(0xFF0F, (byte)(IF | 0x4));
                 }
                 else
                 {
