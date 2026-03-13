@@ -67,15 +67,15 @@ public class Timer : IMemoryMappedDevice
         if (isTimaEnabled)
         {
             TimaTicks += cycles;
-            if (TimaTicks >= TIMA_M_CYCLES)
+            while (TimaTicks >= TIMA_M_CYCLES)
             {
-                
+                TimaTicks -= TIMA_M_CYCLES;
                 if (TIMA == 0xFF)
                 {
                     TIMA = TMA;
                     //Console.WriteLine($"TIMA Overflowed, now 0x{TIMA:X2}.");
                     // Request TIMER interrupt
-                    Bus.Write(0xFF0F, 0x3);
+                    Bus.Write(0xFF0F, 0x4);
                 }
                 else
                 {
@@ -96,6 +96,7 @@ public class Timer : IMemoryMappedDevice
                 DIV = 0;
                 break;
             case 0xFF05:
+                TIMA = data;
                 break;
             case 0xFF06:
                 TMA = data;

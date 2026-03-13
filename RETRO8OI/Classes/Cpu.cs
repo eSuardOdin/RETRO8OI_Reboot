@@ -909,17 +909,18 @@ public class Cpu
                     case 0x7:   // RST 0X20
                         return RST(0x0020);
                     case 0x8:   // ADD SP, e8
-                        int d = ReadBus(PC++);
-                        sbyte data = (sbyte)d;
-                        Console.WriteLine($"[E8] ADD SP, {data} ({data:b8})\t\tSP: {SP} ({SP:b8})");
-                        // Set flags
-                        FlagC = data > 0 ? (SP + data) > 0xFF : (SP & 0xFF) + data < 0;
-                        // FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
-                        FlagH = data > 0 ? (SP & 0xF) + (data & 0xF) > 0xF : (SP & 0xF) + data < 0;
+                        sbyte e8 = (sbyte)ReadBus(PC++);
+    
+                        ushort sp = SP;
+                        int result = sp + e8;
+
                         FlagZ = false;
                         FlagN = false;
-                        SP = (ushort)(SP + data);
-                        Console.WriteLine($"\tResult: {SP:b8} |\tH: {(FlagH?1:0)} |\tC: {(FlagC?1:0)}");
+                        FlagH = ((sp & 0xF) + (e8 & 0xF)) > 0xF;
+                        FlagC = ((sp & 0xFF) + (e8 & 0xFF)) > 0xFF;
+
+                        SP = (ushort)result;
+
                         return 16;
                     case 0x9:   // JP HL
                         PC = HL;
@@ -970,13 +971,17 @@ public class Cpu
                     case 0x7:   // RST 0X30
                         return RST(0x0030);
                     case 0x8:   // LD HL, SP + e8
-                        sbyte data = (sbyte)ReadBus(PC++);
-                        // Set flags
-                        FlagC = (SP + data) > 0xFFFF;
-                        FlagH = ((SP >> 8) & 0xF) + (data & 0xF) > 0xF;
+                        sbyte e8 = (sbyte)ReadBus(PC++);
+    
+                        ushort sp = SP;
+                        int result = sp + e8;
+
                         FlagZ = false;
                         FlagN = false;
-                        HL = (ushort)(SP + data);
+                        FlagH = ((sp & 0xF) + (e8 & 0xF)) > 0xF;
+                        FlagC = ((sp & 0xFF) + (e8 & 0xFF)) > 0xFF;
+
+                        HL = (ushort)result;
                         return 12;
                     case 0x9:   // LD SP, HL
                         SP = HL;
@@ -988,11 +993,6 @@ public class Cpu
 
                         ushort address = (ushort)((hi << 8) | lo);
                         A = ReadBus(address );
-                        // DEBUG
-                        //if (((hi << 8) | lo) == 0xC002 && A == 0x80)
-                        //{
-                        //    Console.WriteLine("Input pressed tested");
-                        //}
                         return 16;
                     case 0xB:   // EI
                         IMEEnable = true;
