@@ -68,11 +68,33 @@ public class Ppu : IMemoryMappedDevice
     private bool StatIntLine = false;
     uint[] BGPalette = new uint[4]
     {
-        0xFFE0F8A0,  // Vert très clair (fond)
-        0xFF88C070,  // Vert clair
-        0xFF346856,  // Vert foncé
+        0xFFE0F8A0,
+        0xFF88C070, 
+        0xFF346856, 
         0xFF081820 
     };
+    uint[] DebugPalette = new uint[12]
+    {
+        // Blue for Window
+        0xFFCCE5FF, 
+        0xFF5599DD, 
+        0xFF1155AA, 
+        0xFF002266, 
+
+        // Red for backround
+        0xFFFFCCCC,  
+        0xFFDD5555,  
+        0xFFAA1111,  
+        0xFF660000,  
+
+        // Green for objects
+        0xFFCCFFCC,  
+        0xFF55DD55,  
+        0xFF11AA11,  
+        0xFF006600,  
+    };
+
+    
     
     // SDL Stuff
     private int Width = 160;
@@ -344,8 +366,9 @@ public class Ppu : IMemoryMappedDevice
                 lo_b = (byte)((lo >> (7 - pixX)) & 1);
                 byte paletteIndex = (byte) (lo_b | (hi_b<<1));
             
-                // Get the color depending on the palette
-                colorIndex = (byte)((BGP & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+                // Get the color depending on the palette and the layer ( IsWindow : IsBG)
+                byte baseIndex = (byte)((BGP & (0b11 << (paletteIndex * 2))) >> (paletteIndex * 2));
+                colorIndex = isWindow && IsWindowEnabled ? baseIndex : (byte)(baseIndex + 4);
             
                 // Put in Framebuffer
                 FrameBuffer[line * Width + x] = colorIndex;
@@ -421,7 +444,8 @@ public class Ppu : IMemoryMappedDevice
                     if (paletteIndex != 0 && (isOverBG || FrameBuffer[startIndex + xPix] == 0))
                     {
                         // Get the color depending on the palette
-                        byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
+                        byte baseIndex = (byte)((objPalette & (0b11 << (paletteIndex * 2))) >> (paletteIndex * 2));
+                        byte colorIndex = (byte)(baseIndex + 8);
 
                         if(!(startIndex + xPix >= Width * Height || startIndex + xPix < 0))
                         {
@@ -470,7 +494,8 @@ public class Ppu : IMemoryMappedDevice
             {
                 for (int y = 0; y < Scale; y++)
                 {
-                    pixels[(destY + y) * Width * Scale + (destX+x)] = BGPalette[FrameBuffer[i]];
+                    // pixels[(destY + y) * Width * Scale + (destX+x)] = BGPalette[FrameBuffer[i]];
+                    pixels[(destY + y) * Width * Scale + (destX+x)] = DebugPalette[FrameBuffer[i]];
                 }
             }
         }
