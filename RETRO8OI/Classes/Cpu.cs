@@ -2544,29 +2544,28 @@ public class Cpu
     private int ExecInterrupt(int b)
     {
         int cycles = 0;
-        String intStr;
-        switch (b)
-        {
-            case 0 :
-                intStr = $"VBlank";
-                break;
-            case 1 :
-                intStr = "LCD";
-                break;
-            case 2 :
-                intStr = "Timer";
-                Console.WriteLine("Timer Interrupt");
-                break;
-            case 3 :
-                intStr = "Serial";
-                break;
-            case 4 :
-                intStr = "Joypad";
-                break;
-            default:
-                intStr = "WTF";
-                break;
-        }
+        // String intStr;
+        // switch (b)
+        // {
+        //     case 0 :
+        //         intStr = $"VBlank";
+        //         break;
+        //     case 1 :
+        //         intStr = "LCD";
+        //         break;
+        //     case 2 :
+        //         intStr = "Timer";
+        //         break;
+        //     case 3 :
+        //         intStr = "Serial";
+        //         break;
+        //     case 4 :
+        //         intStr = "Joypad";
+        //         break;
+        //     default:
+        //         intStr = "WTF";
+        //         break;
+        // }
         //Console.WriteLine($"Before interrupt, LCDC = {ReadBus(0xFF40):X4}, SP = {SP:X4}, PC = {PC:X4}");
         //if(intStr != "VBlank")
         //Console.WriteLine($"Executing {intStr} interrupt. PC before: 0x{PC:X4}");

@@ -15,9 +15,8 @@
 
 # TODO
 
-- When there's an object to the left of the screen and I go right, it appears on the right as it's wrapping around the screen.
-- When giving different palette for the 3 different layers (BG, Window, Objects), Rondoudou is hidden by background in pkmn intro, falling stars from GaemFreak logo too (it is an object, I think)
-- Failing 3 blargg tests (02, 03, 08)
+- When there's an object to the left of the screen and I go right, it appears on the right as it's wrapping around the screen. - FIXED
+- When opening the menu window, background seems to be displayed as it SHOULD (pokemon bleu), display may be bad otherwise. 
 
 
 # Mooneye test suite

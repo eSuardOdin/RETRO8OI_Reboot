@@ -366,9 +366,8 @@ public class Ppu : IMemoryMappedDevice
                 lo_b = (byte)((lo >> (7 - pixX)) & 1);
                 byte paletteIndex = (byte) (lo_b | (hi_b<<1));
             
-                // Get the color depending on the palette and the layer ( IsWindow : IsBG)
-                byte baseIndex = (byte)((BGP & (0b11 << (paletteIndex * 2))) >> (paletteIndex * 2));
-                colorIndex = isWindow && IsWindowEnabled ? baseIndex : (byte)(baseIndex + 4);
+                // Get the color depending on the palette
+                colorIndex = (byte)((BGP & (0b11 << (paletteIndex* 2))) >> (paletteIndex*2));
             
                 // Put in Framebuffer
                 FrameBuffer[line * Width + x] = colorIndex;
@@ -410,6 +409,7 @@ public class Ppu : IMemoryMappedDevice
             // Get the objects that appears on the line
             if (line < (objY + spriteSize) && line >= objY)
             {
+               
                 // Set flag values
                 objInLine++;
                 bool isOverBG = (flags & 0x80) == 0;
@@ -417,10 +417,10 @@ public class Ppu : IMemoryMappedDevice
                 bool isFlippedX = (flags & 0x20) == 0x20;
                 byte objPalette = (flags & 0x10) == 0x10 ? OBP1 : OBP0;
                 // Framebuffer index
+                //if (objX < 0) continue;
                 int startIndex = (line * 160 + objX);
                 // Get row of sprite to draw (Invert if flipped)
                 int spriteRow = isFlippedY ? (spriteSize - 1 - (line - objY)) : (line - objY);
-                
                 
                 byte lo = Vram[(tileIndex * 0x10) + (spriteRow * 2)];
                 byte hi = Vram[(tileIndex * 0x10) + (spriteRow * 2) + 1];
@@ -435,7 +435,7 @@ public class Ppu : IMemoryMappedDevice
                     byte paletteIndex = (byte) (lo_b | (hi_b<<1));
                     // Exit if out of FrameBuffer bounds
                     if (startIndex + xPix >= Width * Height ||
-                        startIndex + xPix < 0)
+                        startIndex + xPix < 0 || (startIndex + xPix) % Width < 0)
                     {
                         continue;
                     }
@@ -444,10 +444,9 @@ public class Ppu : IMemoryMappedDevice
                     if (paletteIndex != 0 && (isOverBG || FrameBuffer[startIndex + xPix] == 0))
                     {
                         // Get the color depending on the palette
-                        byte baseIndex = (byte)((objPalette & (0b11 << (paletteIndex * 2))) >> (paletteIndex * 2));
-                        byte colorIndex = (byte)(baseIndex + 8);
+                        byte colorIndex = (byte)((objPalette & (0b11 << (paletteIndex * 2))) >> (paletteIndex * 2));
 
-                        if(!(startIndex + xPix >= Width * Height || startIndex + xPix < 0))
+                        if(!(startIndex + xPix >= Width * Height || objX + xPix < 0))
                         {
                             // Put in Framebuffer
                             FrameBuffer[startIndex + xPix] = colorIndex;
@@ -494,8 +493,8 @@ public class Ppu : IMemoryMappedDevice
             {
                 for (int y = 0; y < Scale; y++)
                 {
-                    // pixels[(destY + y) * Width * Scale + (destX+x)] = BGPalette[FrameBuffer[i]];
-                    pixels[(destY + y) * Width * Scale + (destX+x)] = DebugPalette[FrameBuffer[i]];
+                    pixels[(destY + y) * Width * Scale + (destX+x)] = BGPalette[FrameBuffer[i]];
+                    //pixels[(destY + y) * Width * Scale + (destX+x)] = DebugPalette[FrameBuffer[i]];
                 }
             }
         }
