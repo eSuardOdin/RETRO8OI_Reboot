@@ -300,10 +300,10 @@ public class Ppu : IMemoryMappedDevice
             {
                 isWindow = (LY >= WY && IsWindowEnabled && x >= WX - 7);
                 // int posY = isWindow ? LY - WY : (SCY + line) % 0xFF;
-                int posY = isWindow ? WindowLineCounter : (SCY + line) % 0xFF;
+                int posY = isWindow ? WindowLineCounter : (SCY + line) % 0x100;
                 int tileY = posY / 8;
                 int row = posY % 8;
-                posX = isWindow ? x - (WX - 7) : (SCX + x) % 0xFF;
+                posX = isWindow ? x - (WX - 7) : (SCX + x) % 0x100;
                 tileX = posX / 8;
                 pixX = posX % 8;
             

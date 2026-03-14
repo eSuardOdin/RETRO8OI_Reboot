@@ -15,9 +15,12 @@
 
 # TODO
 
-- When there's an object to the left of the screen and I go right, it appears on the right as it's wrapping around the screen. - FIXED
-- When opening the menu window, background seems to be displayed as it SHOULD (pokemon bleu), display may be bad otherwise. 
-
+- When there's an object to the left of the screen and I go right, it appears on the right as it's wrapping around the screen.  - FIXED
+  - When opening the menu window, background seems to be displayed as it SHOULD (pokemon bleu), display may be bad otherwise.   - FIXED
+- "Instruction [228] not implemented (ILLEGAL OPCODE)" when playing battletoads, investigate.
+- Metroid: 
+  - Invisible Samus on beginning (flickering on bgb)
+  - Back to main menu (check PUSH/POP CALL ?)
 
 # Mooneye test suite
 
